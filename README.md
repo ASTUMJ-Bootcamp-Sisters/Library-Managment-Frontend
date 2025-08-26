@@ -58,25 +58,15 @@ dialog, toast, alert
 
 🔹 Project Structure
 Library-Managment-Frontend/
-
 ├─ src/
-
 │  ├─ components/ui/       # shadcn/ui components
-
 │  ├─ pages/               # React pages
-
 │  ├─ App.jsx              # main app
-
 │  └─ main.jsx             # entry point
-
 ├─ index.html
-
 ├─ package.json
-
 ├─ tailwind.config.cjs
-
 └─ vite.config.js
-
 
 
 ✅ Ready for your team to clone, install dependencies, and start developing.
