@@ -1,4 +1,4 @@
-import api from "@/api/axios";
+import api from "@/api/auth";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -63,6 +63,7 @@ const useAuthStore = create(
       logout: async () => {
         try {
           await api.post("/auth/logout");
+        // eslint-disable-next-line no-unused-vars
         } catch (e) {
           // ignore error, just clear state
         }
@@ -83,7 +84,7 @@ const useAuthStore = create(
       },
     }),
     {
-      name: "auth-storage", // Name for the localStorage item
+      name: "ASTUMSJ_AUTH-storage", // Name for the localStorage item
     }
   )
 );

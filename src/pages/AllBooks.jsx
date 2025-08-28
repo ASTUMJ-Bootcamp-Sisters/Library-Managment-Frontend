@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { addBook, deleteBook, getAllBooks, updateBook } from "../api/bookApi";
 import BookCard from "../components/BookCard";
 import BookForm from "../components/BookForm";
-import { getAllBooks, addBook, updateBook, deleteBook } from "../api/bookApi";
-import { Button } from "@/components/ui/button";
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
@@ -37,10 +36,6 @@ const AllBooks = () => {
     setBooks(books.filter((b) => b._id !== id));
   };
 
-  const openAddForm = () => {
-    setEditingBook(null);
-    setFormOpen(true);
-  };
 
   const openEditForm = (book) => {
     setEditingBook(book);
@@ -51,9 +46,7 @@ const AllBooks = () => {
     <div className="p-6">
       <div className="flex justify-between mb-4">
         <h2 className="text-2xl font-bold">All Books</h2>
-        <Button className="bg-black text-white" onClick={openAddForm}>
-          + Add Book
-        </Button>
+        
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

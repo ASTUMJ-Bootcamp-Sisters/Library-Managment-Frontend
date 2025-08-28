@@ -1,52 +1,16 @@
-
 import { useEffect, useState } from "react";
-import api from "../api/axios";
 import { Card } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import useAuthStore from "../store/authStore";
+import useUserStore from "../store/useUserStore";
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [actionLoading, setActionLoading] = useState(""); // userId for which action is loading
-  const token = useAuthStore((state) => state.accessToken);
+  const { users, loading, error, fetchUsers, toggleBlacklist } = useUserStore();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await api.get("/auth/users");
-        setUsers(res.data);
-      } catch (err) {
-        setError(err?.response?.data?.message || "Failed to fetch users");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsers();
-  }, [token]);
+  }, [fetchUsers]);
 
-  // Blacklist/Unblacklist user
-  const handleBlacklist = async (userId, isBlacklisted) => {
-    setActionLoading(userId);
-    try {
-      const res = await api.put(`/auth/users/${userId}/blacklist`, { isBlacklisted: !isBlacklisted });
-      console.log("Blacklist API response:", res.data);
-      // Update the user in-place for instant UI feedback
-      setUsers(prevUsers => prevUsers.map(u =>
-        u._id === userId ? { ...u, isBlacklisted: res.data.user.isBlacklisted } : u
-      ));
-    } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update blacklist status");
-    } finally {
-      setActionLoading("");
-    }
-  };
-
-  // Filter users by role
   const filteredUsers = roleFilter === "all" ? users : users.filter(u => u.role === roleFilter);
 
   return (
@@ -74,7 +38,7 @@ const ManageUsers = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
@@ -86,7 +50,7 @@ const ManageUsers = () => {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user._id}>
-                  <TableCell className="max-w-[180px] truncate">{user._id}</TableCell>
+                  
                   <TableCell>{user.fullName || user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
@@ -94,13 +58,10 @@ const ManageUsers = () => {
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <button
-                      className={`px-3 py-1 rounded text-white ${user.isBlacklisted ? "bg-green-600" : "bg-red-600"} disabled:opacity-50`}
-                      disabled={actionLoading === user._id}
-                      onClick={() => handleBlacklist(user._id, user.isBlacklisted)}
+                      className={`px-3 py-1 rounded text-white ${user.isBlacklisted ? "bg-green-600" : "bg-red-600"}`}
+                      onClick={() => toggleBlacklist(user._id, user.isBlacklisted)}
                     >
-                      {actionLoading === user._id
-                        ? "..."
-                        : user.isBlacklisted ? "Unblacklist" : "Blacklist"}
+                      {user.isBlacklisted ? "Unblacklist" : "Blacklist"}
                     </button>
                   </TableCell>
                 </TableRow>
