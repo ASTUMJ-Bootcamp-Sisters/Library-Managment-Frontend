@@ -3,9 +3,61 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import useAuthStore from "@/store/authStore";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  const authStore = useAuthStore();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate form
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { success, error: registerError } = await authStore.register({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (success) {
+        navigate("/Dashboard"); // Redirect to dashboard on success
+      } else {
+        setError(registerError || "Registration failed");
+      }
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card
       className={cn("mx-auto my-16 p-0 md:grid md:grid-cols-2 overflow-hidden shadow-lg", className)}
@@ -14,7 +66,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
     >
       <CardContent className="p-6 md:p-8">
         {/* Left Side: Form */}
-        <form className="flex flex-col gap-6">
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center text-center">
             <h1 className="text-2xl font-bold text-[#5c4033]">Create an account</h1>
             <p className="text-[#5c4033]">Sign up to get started</p>
@@ -28,17 +80,8 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               placeholder="John Doe"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="username" className="text-[#5c4033]">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="johndoe"
-              required
-              className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.fullName}
+              onChange={handleChange}
             />
           </div>
 
@@ -50,6 +93,8 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               placeholder="m@example.com"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
 
@@ -61,6 +106,8 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               placeholder="Enter password"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.password}
+              onChange={handleChange}
             />
           </div>
 
@@ -72,14 +119,21 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               placeholder="Confirm password"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
           </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
 
           <Button
             type="submit"
             className="w-full bg-[#5c4033] hover:bg-[#e6d5c3] text-white"
+            disabled={isLoading}
           >
-            Sign Up
+            {isLoading ? "Signing up..." : "Sign Up"}
           </Button>
 
           <div className="text-center text-sm text-[#5c4033]">

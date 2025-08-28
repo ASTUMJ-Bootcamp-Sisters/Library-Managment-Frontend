@@ -3,9 +3,56 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import useAuthStore from "@/store/authStore";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  const authStore = useAuthStore();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const { success, error: loginError, user } = await authStore.login(
+        formData.email,
+        formData.password
+      );
+
+      if (success) {
+        // Redirect based on user role
+        if (user.role === "admin") {
+          navigate("/AdminDashboard");
+        } else {
+          navigate("/Dashboard");
+        }
+      } else {
+        setError(loginError || "Login failed");
+      }
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card
       className={cn(
@@ -17,7 +64,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     >
       <CardContent className="p-6 md:p-8">
         {/* LEFT SIDE: FORM */}
-        <form className="flex flex-col gap-6">
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center text-center">
             <h1 className="text-2xl font-bold text-[#5c4033]">Welcome back</h1>
             <p className="text-[#5c4033]">Login to your account</p>
@@ -31,6 +78,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               placeholder="m@example.com"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
 
@@ -49,14 +98,21 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
               type="password"
               required
               className="border-[#5c4033] focus:border-[#5c4033] focus:ring-[#5c4033]"
+              value={formData.password}
+              onChange={handleChange}
             />
           </div>
+
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
 
           <Button
             type="submit"
             className="w-full bg-[#5c4033] hover:bg-[#e6d5c3] text-white"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </Button>
 
           <div className="text-center text-sm text-[#5c4033]">

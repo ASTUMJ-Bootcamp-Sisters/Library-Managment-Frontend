@@ -1,14 +1,19 @@
+import useAuthStore from "@/store/authStore";
 import {
   Book,
   BookCopy,
+  BookMarked,
   ChevronLeft,
   ChevronRight,
   Heart,
   History,
   Info,
+  LayoutDashboard,
   LifeBuoy,
   MessageSquare,
+  Settings,
   User,
+  Users
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,13 +33,26 @@ const SidebarLink = ({ href, icon: Icon, label, active, collapsed }) => (
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-
+  const isAdmin = useAuthStore((state) => state.isAdmin());
+  
+  // Student links (default)
   const mainLinks = [
+    { href: "/Dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/AllBooks", icon: Book, label: "All Books" },
     { href: "/Borrow", icon: BookCopy, label: "Borrow a Book" },
     { href: "/Favorites", icon: Heart, label: "Favorites" },
     { href: "/ReadingHistory", icon: History, label: "Reading History" },
     { href: "/Profile", icon: User, label: "Profile" },
+  ];
+  
+  // Admin links
+  const adminLinks = [
+    { href: "/AdminDashboard", icon: LayoutDashboard, label: "Admin Dashboard" },
+    { href: "/ManageBooks", icon: Book, label: "Manage Books" },
+    { href: "/ManageUsers", icon: Users, label: "Manage Users" },
+    { href: "/BorrowingRequests", icon: BookMarked, label: "Borrowing Requests" },
+    { href: "/AdminSettings", icon: Settings, label: "Settings" },
+    { href: "/AdminProfile", icon: User, label: "Profile" },
   ];
 
   const bottomLinks = [
@@ -78,7 +96,7 @@ export default function Sidebar() {
       {/* Main Navigation */}
       <div className="flex-1">
         <nav className="grid items-start px-2 text-sm font-medium py-4">
-          {mainLinks.map((item) => (
+          {(isAdmin ? adminLinks : mainLinks).map((item) => (
             <SidebarLink
               key={item.label}
               {...item}

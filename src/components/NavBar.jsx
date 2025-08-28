@@ -1,6 +1,9 @@
+
 import { Calendar, Clock, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
+
 
 export default function Navbar() {
   const [time, setTime] = useState("");
@@ -8,7 +11,11 @@ export default function Navbar() {
   const [hijriDate, setHijriDate] = useState("");
   const [hijriArabic, setHijriArabic] = useState(false);
   const [open, setOpen] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -46,67 +53,120 @@ export default function Navbar() {
   }, [hijriArabic]);
 
   return (
-    <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-md">
-
-      <div className="flex items-center space-x-2">
-
-
-        {/* Gregorian Date */}
-        <div className="flex items-center space-x-1 bg-[#fdf8f3] p-2 rounded-full border border-[#e6d5c3]">
-          <Calendar size={18} className="text-red-500" />
-          <span className="text-sm">{gregDate}</span>
-        </div>
-
-        {/* Hijri Date */}
-        <div className="flex items-center space-x-1 bg-[#fff0e0] p-2 rounded-full border border-[#e6d5c3]">
-          <Calendar size={18} className="text-red-500" />
-          <span className="text-sm">{hijriDate}</span>
-        </div>
-
-        {/* Toggle Button (Hijri only) */}
-        <button
-          onClick={() => setHijriArabic(!hijriArabic)}
-          className="ml-2 px-2 py-1 text-sm rounded bg-[#5c4033] text-white hover:bg-[#e6d5c3]"
-        >
-          {hijriArabic ? "EN" : "AR"}
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center space-x-2 bg-gray-100 p-2 rounded-full">
-        <span className="text-gray-500">All</span>
-        <input
-          type="text"
-          placeholder="Search"
-          className="bg-transparent outline-none text-sm"
-        />
-        <Search size={18} className="text-red-500" />
-      </div>
-        {/* Time */}
-        <div className="flex items-center space-x-1 bg-gray-100 p-2 rounded-full">
-          <Clock size={18} className="text-red-500" />
-          <span className="text-sm">{time}</span>
-        </div>
-
-      {/* Avatar */}
-      <div className="relative">
-        <div
-          className="flex items-center space-x-2 cursor-pointer"
-          onClick={() => setOpen(!open)}
-        >
-          <User size={28} className="rounded-full border p-1" />
-        </div>
-        {open && (
-          <div className="absolute right-0 mt-2 w-28 bg-white rounded-md shadow-lg">
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Login
-            </button>
+    <nav className="bg-white p-2 rounded-xl shadow-md w-full">
+      <div className="flex items-center justify-between">
+        {/* Left: Dates and Toggle */}
+        <div className="flex items-center space-x-2">
+          {/* Hamburger for mobile */}
+          <button className="md:hidden mr-2" onClick={() => setMobileMenu(!mobileMenu)}>
+            <span className="block w-6 h-0.5 bg-gray-700 mb-1"></span>
+            <span className="block w-6 h-0.5 bg-gray-700 mb-1"></span>
+            <span className="block w-6 h-0.5 bg-gray-700"></span>
+          </button>
+          {/* Gregorian Date */}
+          <div className="hidden md:flex items-center space-x-1 bg-[#fdf8f3] p-2 rounded-full border border-[#e6d5c3]">
+            <Calendar size={18} className="text-red-500" />
+            <span className="text-sm">{gregDate}</span>
           </div>
-        )}
+          {/* Hijri Date */}
+          <div className="hidden md:flex items-center space-x-1 bg-[#fff0e0] p-2 rounded-full border border-[#e6d5c3]">
+            <Calendar size={18} className="text-red-500" />
+            <span className="text-sm">{hijriDate}</span>
+          </div>
+          {/* Toggle Button (Hijri only) */}
+          <button
+            onClick={() => setHijriArabic(!hijriArabic)}
+            className="ml-2 px-2 py-1 text-sm rounded bg-[#5c4033] text-white hover:bg-[#e6d5c3]"
+          >
+            {hijriArabic ? "EN" : "AR"}
+          </button>
+        </div>
+        {/* Center: Search (hidden on mobile) */}
+        <div className="hidden md:flex items-center space-x-2 bg-gray-100 p-2 rounded-full">
+          <span className="text-gray-500">All</span>
+          <input
+            type="text"
+            placeholder="Search"
+            className="bg-transparent outline-none text-sm"
+          />
+          <Search size={18} className="text-red-500" />
+        </div>
+        {/* Right: Time and Avatar */}
+        <div className="flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-1 bg-gray-100 p-2 rounded-full">
+            <Clock size={18} className="text-red-500" />
+            <span className="text-sm">{time}</span>
+          </div>
+          {/* Avatar/User Dropdown */}
+          <div className="relative">
+            <div
+              className="flex items-center space-x-2 cursor-pointer"
+              onClick={() => setOpen(!open)}
+            >
+              {isAuthenticated && user ? (
+                <span className="flex items-center gap-2">
+                  <User size={28} className="rounded-full border p-1" />
+                  <span className="hidden md:inline text-sm font-medium">{user.fullName || user.name || user.email}</span>
+                </span>
+              ) : (
+                <User size={28} className="rounded-full border p-1" />
+              )}
+            </div>
+            {open && (
+              <div className="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg z-50">
+                {isAuthenticated ? (
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      setOpen(false);
+                      navigate("/login");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      navigate("/login");
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Login
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+      {/* Mobile menu: show dates, search, time */}
+      {mobileMenu && (
+        <div className="md:hidden mt-2 space-y-2">
+          <div className="flex items-center space-x-1 bg-[#fdf8f3] p-2 rounded-full border border-[#e6d5c3]">
+            <Calendar size={18} className="text-red-500" />
+            <span className="text-sm">{gregDate}</span>
+          </div>
+          <div className="flex items-center space-x-1 bg-[#fff0e0] p-2 rounded-full border border-[#e6d5c3]">
+            <Calendar size={18} className="text-red-500" />
+            <span className="text-sm">{hijriDate}</span>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-100 p-2 rounded-full">
+            <span className="text-gray-500">All</span>
+            <input
+              type="text"
+              placeholder="Search"
+              className="bg-transparent outline-none text-sm"
+            />
+            <Search size={18} className="text-red-500" />
+          </div>
+          <div className="flex items-center space-x-1 bg-gray-100 p-2 rounded-full">
+            <Clock size={18} className="text-red-500" />
+            <span className="text-sm">{time}</span>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 }
