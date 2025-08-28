@@ -4,7 +4,11 @@ const BookCard = ({ book }) => {
   return (
     <div className="bg-white shadow rounded-xl p-4 hover:shadow-lg transition-all duration-300 flex flex-col">
       {/* Book Image */}
+<<<<<<< Updated upstream
       <div className="w-full h-56 overflow-hidden rounded-lg">
+=======
+      <div className="w-full h-96 overflow-hidden rounded-lg">
+>>>>>>> Stashed changes
         <img
           src={book.image}
           alt={book.title}
