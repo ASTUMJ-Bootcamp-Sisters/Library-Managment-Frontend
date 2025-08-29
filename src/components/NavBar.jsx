@@ -2,7 +2,7 @@
 import { Calendar, Clock, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../store/AuthStore";
 
 
 export default function Navbar() {

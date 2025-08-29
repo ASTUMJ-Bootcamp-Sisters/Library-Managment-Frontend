@@ -3,9 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import useAuthStore from "@/store/authStore";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import useAuthStore from "../store/AuthStore";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({

@@ -3,7 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import useAuthStore from "@/store/authStore";
+
+import useAuthStore from "../store/AuthStore";
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 

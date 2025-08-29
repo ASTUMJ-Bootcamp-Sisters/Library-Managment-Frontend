@@ -1,7 +1,7 @@
 // AppRoutes.jsx
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
-import useAuthStore from "./store/authStore";
+import useAuthStore from "./store/AuthStore";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
