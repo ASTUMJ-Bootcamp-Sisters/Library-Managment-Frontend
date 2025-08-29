@@ -26,7 +26,7 @@ const ManageUsers = () => {
         >
           <option value="all">All</option>
           <option value="admin">Admin</option>
-          <option value="student">Student</option>
+          <option value="student">users</option>
         </select>
       </div>
       <Card className="overflow-x-auto overflow-y-auto max-h-[60vh] min-w-[700px]">

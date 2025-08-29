@@ -18,6 +18,7 @@ const Welcome = () => {
       try {
         const data = await getAllBooks();
         setBooks(data);
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         setBooks([]);
       } finally {
