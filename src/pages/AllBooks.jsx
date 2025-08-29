@@ -1,76 +1,46 @@
 import { useEffect, useState } from "react";
-import { addBook, deleteBook, getAllBooks, updateBook } from "../api/bookApi";
+import { useNavigate } from "react-router-dom";
+import { getAllBooks } from "../api/bookApi";
 import BookCard from "../components/BookCard";
-import BookForm from "../components/BookForm";
+import { BookOpen } from "lucide-react";
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingBook, setEditingBook] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
   const fetchBooks = async () => {
-    const data = await getAllBooks();
-    setBooks(data);
-  };
-
-  const handleFormSubmit = async (data) => {
-    if (editingBook) {
-      // UPDATE
-      const updated = await updateBook(editingBook._id, data);
-      setBooks(books.map((b) => (b._id === updated._id ? updated : b)));
-      setEditingBook(null);
-    } else {
-      // ADD
-      const newBook = await addBook(data);
-      setBooks([...books, newBook]);
+    try {
+      const data = await getAllBooks();
+      setBooks(data);
+    } catch (err) {
+      console.error("Error fetching books:", err);
     }
-    setFormOpen(false);
-  };
-
-  const handleDelete = async (id) => {
-    await deleteBook(id);
-    setBooks(books.filter((b) => b._id !== id));
-  };
-
-
-  const openEditForm = (book) => {
-    setEditingBook(book);
-    setFormOpen(true);
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-2xl font-bold">All Books</h2>
-        
+    <div className="p-6 bg-white min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-gradient-to-r from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] py-3 shadow-md mb-6 flex items-center justify-center gap-3">
+        <BookOpen className="w-8 h-8 text-[#4a2c1a]" /> 
+        <h1 className="text-3xl font-extrabold text-[#4a2c1a] tracking-wide font-serif">
+          All Books
+        </h1>
       </div>
 
+      {/* Books Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {books.map((book) => (
           <BookCard
             key={book._id}
             book={book}
-            onEdit={() => openEditForm(book)}
-            onDelete={() => handleDelete(book._id)}
+            onViewDetails={() => navigate(`/book/${book._id}`)} // ✅ Navigate to detail page
           />
         ))}
       </div>
-
-      {formOpen && (
-        <BookForm
-          open={formOpen}
-          onClose={() => {
-            setFormOpen(false);
-            setEditingBook(null);
-          }}
-          onSubmit={handleFormSubmit}
-          initialData={editingBook}
-        />
-      )}
     </div>
   );
 };
