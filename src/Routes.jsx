@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
 import AdminSettings from "./pages/AdminSettings";
 import AllBooks from "./pages/AllBooks";
+import BookDetail from "./pages/BookDetail"; 
 import Borrow from "./pages/Borrow";
 import BorrowingRequests from "./pages/BorrowingRequests";
 import Dashboard from "./pages/Dashboard";
@@ -64,6 +65,12 @@ const AppRoutes = () => {
             <AllBooks />
           </ProtectedRoute>
         } />
+        <Route path="/book/:id" element={
+          <ProtectedRoute>
+            <BookDetail />
+          </ProtectedRoute>
+        } />
+
         <Route path="/Borrow" element={
           <ProtectedRoute>
             <Borrow />

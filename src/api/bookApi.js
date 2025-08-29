@@ -1,5 +1,4 @@
 import api from "./auth";
-
 const BASE_URL = "/books";
 
 // Get all books
@@ -53,6 +52,28 @@ export const deleteBook = async (bookId) => {
     return res.data; // { message: "Book deleted successfully" }
   } catch (err) {
     console.error("Error deleting book:", err);
+    throw err;
+  }
+};
+
+// Add comment to a book
+export const addComment = async (bookId, data) => {
+  try {
+    const res = await api.post(`${BASE_URL}/comment`, { bookId, ...data });
+    return res.data;
+  } catch (err) {
+    console.error("Error adding comment:", err);
+    throw err;
+  }
+};
+
+// Rate a book
+export const rateBook = async (bookId, data) => {
+  try {
+    const res = await api.post(`${BASE_URL}/rate`, { bookId, ...data });
+    return res.data;
+  } catch (err) {
+    console.error("Error rating book:", err);
     throw err;
   }
 };
