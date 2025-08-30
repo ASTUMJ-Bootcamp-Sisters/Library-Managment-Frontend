@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { getAllBooks } from "../api/bookApi";
 import BookCard from "../components/BookCard";
 import { BookOpen } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "@/components/ui/dialog";
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
   const navigate = useNavigate();
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchBooks();
@@ -19,6 +22,11 @@ const AllBooks = () => {
     } catch (err) {
       console.error("Error fetching books:", err);
     }
+  };
+
+  const handleBorrow =(book) =>{
+    setSelectedBook(book);
+    setOpenDialog(true);
   };
 
   return (
@@ -37,10 +45,41 @@ const AllBooks = () => {
           <BookCard
             key={book._id}
             book={book}
+            onBorrowClick={handleBorrow}
             onViewDetails={() => navigate(`/book/${book._id}`)} // ✅ Navigate to detail page
           />
         ))}
       </div>
+      
+      {/* Borrow Dilog*/}
+      {selectedBook && (
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader >
+              <DialogTitle>Borrow Book</DialogTitle>
+              <DialogDescription>
+                Do you want to borrow <b>{selectedBook.title}</b>?
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter>
+              <button
+                onClick={() => setOpenDialog (false)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button onClick={() =>{
+                console.log("Borrow confrimed:", selectedBook);
+                setOpenDialog(false);
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg">
+                Confrim
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
