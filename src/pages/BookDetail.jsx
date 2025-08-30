@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getBookById, addComment, rateBook } from "../api/bookApi";
 import { ArrowLeft } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/Textarea";
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -106,18 +108,27 @@ const BookDetail = () => {
           </div>
 
           {/* Comments */}
-          <div className="mt-4">
+          <div className="mt-4 f gap-2">
             <h2 className="text-xl font-semibold mb-2">Comments</h2>
             {book.comments?.length > 0 ? (
               book.comments.map((c) => (
                 <div key={c._id} className="border-b py-2 flex gap-2 items-start">
-                  <img
-                    src={c.user?.profileImage || "/default-avatar.png"}
-                    alt={c.user?.name || "User"}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+                  <Avatar className="bg-slate-400">
+                    {c.user?.profileImage ? (
+                      <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
+                    ) : (
+                      <AvatarFallback>
+                        {c.user?.fullName
+                          ? c.user.fullName
+                               .split(" ")
+                               .map ((n) => n[0])
+                               .join("")
+                              : "U"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold">{c.user?.name || "User"}</p>
+                    <p className="font-semibold">{c.user?.fullName || "User"}</p>
                     <div className="flex items-center gap-1">
                       {[1,2,3,4,5].map((star) => (
                         <span
@@ -138,19 +149,26 @@ const BookDetail = () => {
             )}
 
             {/* Add Comment */}
-            <div className="mt-4 flex gap-2">
-              <input
-                type="text"
+            <div className="mt-4 gap-2">
+              <Textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment"
-                className="border p-2 flex-1 rounded"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey){
+                    e.preventDefault();
+                    handleCommentSubmit();
+                  }
+                }}
+                placeholder="Add comment"
+                className=" flex-1 resize-none h-12 rounded"
               />
               <button
                 onClick={handleCommentSubmit}
                 className="bg-[#4a2c1a] text-white px-4 py-2 rounded hover:bg-[#633b25]"
               >
-                Submit
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </button>
             </div>
           </div>
