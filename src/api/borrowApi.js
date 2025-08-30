@@ -1,0 +1,54 @@
+import api from './axios';
+
+// Admin: Get pending borrowing requests
+export const getPendingBorrows = async () => {
+  try {
+    const response = await api.get('/borrow/pending');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch pending requests';
+  }
+};
+
+// Admin: Approve a borrow request
+export const approveBorrowRequest = async (borrowId) => {
+  try {
+    // Using :id parameter as defined in the backend route
+    const response = await api.put(`/borrow/approve/${borrowId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error approving borrow request:", error);
+    throw error.response?.data?.message || 'Failed to approve request';
+  }
+};
+
+// Admin: Reject a borrow request
+export const rejectBorrowRequest = async (borrowId) => {
+  try {
+    const response = await api.delete(`/borrow/reject/${borrowId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error rejecting borrow request:", error);
+    throw error.response?.data?.message || 'Failed to reject request';
+  }
+};
+
+// Student: Borrow a book
+export const borrowBook = async (bookId, duration) => {
+  try {
+    const response = await api.post('/borrow', { bookId, duration });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to borrow book';
+  }
+};
+
+// Student: Return a book
+export const returnBook = async (borrowId) => {
+  try {
+    const response = await api.post('/borrow/return', { borrowId });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to return book';
+  }
+};

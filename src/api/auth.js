@@ -21,4 +21,10 @@ api.interceptors.request.use(
   }
 );
 
+// Assign role to user
+export const assignUserRole = async (userId, role) => {
+  const res = await api.put(`/auth/users/${userId}/role`, { role });
+  return res.data;
+};
+
 export default api;

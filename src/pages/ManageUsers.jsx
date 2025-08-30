@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+// Removed Radix UI Select imports
+import { Button } from "../components/ui/button";
 import useUserStore from "../store/useUserStore";
 
 const ManageUsers = () => {
@@ -20,13 +22,13 @@ const ManageUsers = () => {
         <label htmlFor="roleFilter" className="font-medium">Filter by role:</label>
         <select
           id="roleFilter"
-          className="border rounded px-2 py-1"
           value={roleFilter}
           onChange={e => setRoleFilter(e.target.value)}
+          className="border rounded px-2 py-1 w-[180px]"
         >
           <option value="all">All</option>
           <option value="admin">Admin</option>
-          <option value="student">users</option>
+          <option value="student">Student</option>
         </select>
       </div>
       <Card className="overflow-x-auto overflow-y-auto max-h-[60vh] min-w-[700px]">
@@ -38,7 +40,6 @@ const ManageUsers = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
@@ -50,19 +51,37 @@ const ManageUsers = () => {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user._id}>
-                  
                   <TableCell>{user.fullName || user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <select
+                      value={user.role}
+                      onChange={e => useUserStore.getState().assignRole(user._id, e.target.value)}
+                      disabled={user.isBlacklisted}
+                      className="border rounded px-2 py-1"
+                    >
+                      {user.role === "admin" ? (
+                        <>
+                          <option value="admin">admin</option>
+                          <option value="student">student</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="student">student</option>
+                          <option value="admin">admin</option>
+                        </>
+                      )}
+                    </select>
+                  </TableCell>
                   <TableCell>{user.isBlacklisted ? "Yes" : "No"}</TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <button
+                    <Button
                       className={`px-3 py-1 rounded text-white ${user.isBlacklisted ? "bg-green-600" : "bg-red-600"}`}
                       onClick={() => toggleBlacklist(user._id, user.isBlacklisted)}
                     >
                       {user.isBlacklisted ? "Unblacklist" : "Blacklist"}
-                    </button>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

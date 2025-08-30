@@ -1,10 +1,15 @@
 import {
-    Dialog, DialogClose, DialogContent, DialogFooter,
-    DialogHeader, DialogTitle, DialogTrigger
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import useBookStore from "@/store/useBookStore";
-import { Pencil, Trash2 } from "lucide-react"; // Import icons
+import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const ManageBooks = () => {
@@ -12,8 +17,17 @@ const ManageBooks = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
 
   const {
-    books, form, loading, error, editingId,
-    fetchBooks, saveBook, editBook, deleteBookById, resetForm, setForm
+    books,
+    form,
+    loading,
+    error,
+    editingId,
+    fetchBooks,
+    saveBook,
+    editBook,
+    deleteBookById,
+    resetForm,
+    setForm
   } = useBookStore();
 
   useEffect(() => {
@@ -22,23 +36,24 @@ const ManageBooks = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => {
-      if (name.startsWith("category.")) {
-        const key = name.split(".")[1];
-        return { ...prev, category: { ...prev.category, [key]: value } };
-      }
-      if (name.startsWith("copies.")) {
-        const key = name.split(".")[1];
-        return {
-          ...prev,
-          copies: { ...prev.copies, [key]: type === "checkbox" ? checked : value },
-        };
-      }
-      if (name === "available" || name === "copies.hardCopy" || name === "year") {
-        return { ...prev, [name]: Number(value) };
-      }
-      return { ...prev, [name]: value };
-    });
+    
+    const newForm = { ...form };
+
+    if (name.startsWith("category.")) {
+      const key = name.split(".")[1];
+      newForm.category = { ...newForm.category, [key]: value || "" };
+    } else if (name.startsWith("copies.")) {
+      const key = name.split(".")[1];
+      newForm.copies = { ...newForm.copies, [key]: type === "checkbox" ? checked : Number(value) || 0 };
+    } else if (name === "available" || name === "year") {
+      newForm[name] = Number(value) || 0;
+    } else if (type === "checkbox") {
+      newForm[name] = checked;
+    } else {
+      newForm[name] = value || "";
+    }
+    
+    setForm(newForm);
   };
 
   const handleSubmit = async (e) => {
@@ -77,9 +92,9 @@ const ManageBooks = () => {
 
     return fields.map((field) => {
       const isNested = field.key.includes(".");
-      const [parent, child] = isNested ? field.key.split(".") : [null, null];
-      const value = isNested ? (form[parent] ? form[parent][child] : "") : form[field.key];
-      const checked = field.type === "checkbox" && value;
+      const [parent, child] = isNested ? field.key.split(".") : [field.key, null];
+      const value = isNested ? form[parent]?.[child] ?? "" : form[parent] ?? "";
+      const checked = field.type === "checkbox" ? !!value : undefined;
       
       const inputClass = field.fullWidth ? "col-span-full" : "col-span-1";
 
@@ -130,7 +145,6 @@ const ManageBooks = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold text-[#5c4033] mb-4">Manage Books</h1>
       
-      {/* Filter + Add Button */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <label className="mr-2 text-[#5c4033] font-medium">Filter by Category:</label>
@@ -159,7 +173,6 @@ const ManageBooks = () => {
               <DialogTitle>{editingId ? "Edit Book" : "Add Book"}</DialogTitle>
             </DialogHeader>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-              {/* Form Fields */}
               {renderFormFields()}
               <DialogFooter className="col-span-full flex flex-row gap-2 justify-end mt-4">
                 <button
@@ -184,11 +197,13 @@ const ManageBooks = () => {
         </Dialog>
       </div>
 
-      {/* Book Table */}
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <div className="overflow-x-auto" style={{ background: '#fff' }}>
+        <div 
+          className="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-md" 
+          style={{ background: '#fff' }}
+        >
           <Table>
             <TableHeader>
               <TableRow>
