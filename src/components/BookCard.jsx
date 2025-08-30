@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-const BookCard = ({ book, onBorrow, onViewDetails }) => (
+const BookCard = ({ book, onBorrowClick, onViewDetails }) => (
   <div className="relative bg-gradient-to-br from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] shadow-lg rounded-2xl p-4 flex flex-col items-center hover:shadow-2xl transition-all duration-300 overflow-hidden">
     
     {/* Book Image */}
@@ -19,11 +19,11 @@ const BookCard = ({ book, onBorrow, onViewDetails }) => (
       {book.isBorrowed ? (
         <p className="px-4 py-2 rounded-xl bg-gray-300 text-gray-700 font-semibold">Borrowed</p>
       ) : (
-        <Button onClick={() => onBorrow(book)} className="bg-[#5a3825] hover:bg-[#8b5e3c] text-white">
+        <Button onClick={() => onBorrowClick(book)} className="bg-[#5a3825] hover:bg-[#8b5e3c] text-white">
           Borrow
         </Button>
       )}
-      <Button onClick={() => onViewDetails(book)} className="bg-[#8b5e3c] hover:bg-[#5a3825] text-white">
+      <Button onClick={() => onViewDetails(book)} className="bg-[#5a3825] hover:bg-[#8b5e3c] text-white">
         View Details
       </Button>
     </div>
