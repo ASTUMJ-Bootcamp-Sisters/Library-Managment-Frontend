@@ -7,9 +7,9 @@ export default function Layout() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 h-screen">
         <Navbar />
-        <main className="flex-1 p-4">
+        <main className="flex-1 p-4 overflow-y-auto">
           <Outlet /> {/* <-- Renders the current route */}
         </main>
         <Footer />

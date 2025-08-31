@@ -28,6 +28,18 @@ const useUserStore = create((set, get) => ({
       alert(err?.response?.data?.message || "Failed to update blacklist status");
     }
   },
+  assignRole: async (userId, role) => {
+    try {
+      const res = await import("../api/auth").then(m => m.assignUserRole(userId, role));
+      set({
+        users: get().users.map((u) =>
+          u._id === userId ? { ...u, role: res.user.role } : u
+        ),
+      });
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to update user role");
+    }
+  },
 }));
 
 export default useUserStore;
