@@ -7,8 +7,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
 import AdminSettings from "./pages/AdminSettings";
 import AllBooks from "./pages/AllBooks";
-import BookDetail from "./pages/BookDetail"; 
+import BookDetail from "./pages/BookDetail";
 import Borrow from "./pages/Borrow";
+import BorrowHistory from "./pages/BorrowHistory";
 import BorrowingRequests from "./pages/BorrowingRequests";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
@@ -110,6 +111,11 @@ const AppRoutes = () => {
         <Route path="/BorrowingRequests" element={
           <AdminRoute>
             <BorrowingRequests />
+          </AdminRoute>
+        } />
+        <Route path="/BorrowHistory" element={
+          <AdminRoute>
+            <BorrowHistory />
           </AdminRoute>
         } />
         <Route path="/AdminSettings" element={

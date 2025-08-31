@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import {
     approveBorrowRequest,
     borrowBook,
+    getAdminBorrowHistory,
     getPendingBorrows,
+    getStudentBorrowHistory,
     rejectBorrowRequest,
     returnBook
 } from '../api/borrowApi';
@@ -11,6 +13,8 @@ const useBorrowStore = create((set, get) => ({
   // State
   pendingBorrows: [],
   userBorrows: [],
+  borrowHistory: [],
+  adminBorrowHistory: [],
   isLoading: false,
   error: null,
   
@@ -90,7 +94,33 @@ const useBorrowStore = create((set, get) => ({
   },
   
   // Clear errors
-  clearError: () => set({ error: null })
+  clearError: () => set({ error: null }),
+  
+  // Get borrow history for the logged-in student
+  fetchStudentBorrowHistory: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await getStudentBorrowHistory();
+      set({ borrowHistory: data, isLoading: false });
+      return { success: true, data };
+    } catch (error) {
+      set({ error: error.toString(), isLoading: false });
+      return { success: false, error };
+    }
+  },
+  
+  // Get borrow history for admin view (all students or specific student)
+  fetchAdminBorrowHistory: async (studentId = null) => {
+    set({ isLoading: true, error: null });
+    try {
+      const data = await getAdminBorrowHistory(studentId);
+      set({ adminBorrowHistory: data, isLoading: false });
+      return { success: true, data };
+    } catch (error) {
+      set({ error: error.toString(), isLoading: false });
+      return { success: false, error };
+    }
+  }
 }));
 
 export default useBorrowStore;
