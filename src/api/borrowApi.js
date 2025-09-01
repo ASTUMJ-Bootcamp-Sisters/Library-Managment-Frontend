@@ -63,12 +63,14 @@ export const getStudentBorrowHistory = async () => {
   }
 };
 
-// Admin: Get all borrow history or for specific student
-export const getAdminBorrowHistory = async (studentId = null) => {
+// Admin: Get all borrow history or for specific student (supports filter object)
+export const getAdminBorrowHistory = async (filters = {}) => {
   try {
-    const url = studentId 
-      ? `/borrow/admin/history?studentId=${studentId}` 
-      : '/borrow/admin/history';
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) params.append(key, value);
+    });
+    const url = '/borrow/admin/history' + (params.toString() ? `?${params}` : '');
     const response = await api.get(url);
     return response.data;
   } catch (error) {

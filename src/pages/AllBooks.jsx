@@ -1,18 +1,16 @@
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { BookOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBooks } from "../api/bookApi";
 import BookCard from "../components/BookCard";
-import { BookOpen } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
@@ -31,9 +29,12 @@ const AllBooks = () => {
 
   const fetchBooks = async () => {
     try {
-      const data = await getAllBooks();
-      setBooks(data);
+      const response = await getAllBooks();
+      // Normalize to array: if response is { success, data }, use data; else fallback to response
+      const booksArray = Array.isArray(response) ? response : response?.data || [];
+      setBooks(booksArray);
     } catch (err) {
+      setBooks([]);
       console.error("Error fetching books:", err);
     }
   };
@@ -68,14 +69,18 @@ const AllBooks = () => {
 
       {/* Books Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {books.map((book) => (
-          <BookCard
-            key={book._id}
-            book={book}
-            onBorrowClick={handleBorrow}
-            onViewDetails={() => navigate(`/book/${book._id}`)}
-          />
-        ))}
+        {Array.isArray(books) && books.length > 0 ? (
+          books.map((book) => (
+            <BookCard
+              key={book._id}
+              book={book}
+              onBorrowClick={handleBorrow}
+              onViewDetails={() => navigate(`/book/${book._id}`)}
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center text-gray-500">No books found.</div>
+        )}
       </div>
 
       {/* Borrow Dialog */}
