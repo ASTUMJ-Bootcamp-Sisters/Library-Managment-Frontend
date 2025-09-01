@@ -11,18 +11,16 @@ const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      
-      // Login action
+
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
           const response = await api.post("/auth/login", { email, password });
           const { user, accessToken, refreshToken } = response.data;
-          
-          // Save tokens to local storage
+
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
-          
+
           set({
             user,
             accessToken,
@@ -30,41 +28,47 @@ const useAuthStore = create(
             isAuthenticated: true,
             isLoading: false,
           });
-          
+
           return { success: true, user };
         } catch (error) {
           set({
             error: error.response?.data?.message || "Login failed",
             isLoading: false,
           });
-          return { success: false, error: error.response?.data?.message || "Login failed" };
+          return {
+            success: false,
+            error: error.response?.data?.message || "Login failed",
+          };
         }
       },
-      
-      // Register action
+
       register: async (userData) => {
         set({ isLoading: true, error: null });
         try {
           await api.post("/auth/register", userData);
-          
-          // Auto login after registration
-          const loginResult = await get().login(userData.email, userData.password);
+
+          const loginResult = await get().login(
+            userData.email,
+            userData.password
+          );
           return loginResult;
         } catch (error) {
           set({
             error: error.response?.data?.message || "Registration failed",
             isLoading: false,
           });
-          return { success: false, error: error.response?.data?.message || "Registration failed" };
+          return {
+            success: false,
+            error: error.response?.data?.message || "Registration failed",
+          };
         }
       },
-      
-      // Logout action
+
       logout: async () => {
         try {
           await api.post("/auth/logout");
         } catch (e) {
-          // ignore error, just clear state
+          // ignore
         }
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
@@ -75,15 +79,16 @@ const useAuthStore = create(
           isAuthenticated: false,
         });
       },
-      
-      // Check if user is admin
+
+      setUser: (user) => set({ user }),
+
       isAdmin: () => {
         const { user } = get();
         return user?.role === "admin";
       },
     }),
     {
-      name: "auth-storage", // Name for the localStorage item
+      name: "auth-storage",
     }
   )
 );

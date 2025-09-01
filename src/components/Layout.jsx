@@ -14,6 +14,7 @@ export default function Layout() {
         </main>
         <Footer />
       </div>
+      
     </div>
   );
 }
