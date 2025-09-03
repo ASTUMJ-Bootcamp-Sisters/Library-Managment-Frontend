@@ -103,7 +103,7 @@ const AdminProfile = () => {
   if (!user) return <div className="text-center p-10">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#fdf8f3] via-[#e6d5c3] to-[#cbb89d] p-6">
+  <div className="min-h-screen bg-gradient-to-r from-white via-[#fdf8f0] to-white p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-[#5c4033] mb-4">Admin Profile</h1>
 

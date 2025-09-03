@@ -34,9 +34,17 @@ export const rejectBorrowRequest = async (borrowId) => {
 };
 
 // Student: Borrow a book
-export const borrowBook = async (bookId, duration) => {
+export const borrowBook = async (formData) => {
   try {
-    const response = await api.post('/borrow', { bookId, duration });
+    // Using FormData to support file uploads for non-members
+    // Make sure the field names match what the backend expects:
+    // - idCardImage: For ID card image upload
+    // - paymentImage: For payment proof image upload
+    const response = await api.post('/borrow', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to borrow book';

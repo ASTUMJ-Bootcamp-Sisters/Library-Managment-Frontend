@@ -3,6 +3,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
+import useMembershipStore from "../store/membershipStore";
 
 const API_URL = "http://localhost:5000/api/auth";
 
@@ -22,6 +23,9 @@ const Profile = () => {
   });
   const [message, setMessage] = useState("");
   const token = localStorage.getItem("accessToken");
+
+  const { emailVerificationStatus, requestEmailOtp } = useMembershipStore();
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     axios
@@ -71,8 +75,9 @@ const Profile = () => {
       });
       setUser(res.data.user);
       setMessage(res.data.message);
-      if (res.data.user.profilepic)
+      if (res.data.user.profilepic) {
         setPreview(`http://localhost:5000/${res.data.user.profilepic}`);
+      }
     } catch (err) {
       setMessage(err.response?.data?.message || "Update failed");
     }
@@ -95,6 +100,17 @@ const Profile = () => {
     }
   };
 
+  const handleVerifyEmail = async () => {
+    setVerifying(true);
+    try {
+      await requestEmailOtp();
+      setMessage("OTP sent to your email. Please check your inbox.");
+    } catch (err) {
+      setMessage("Failed to send OTP. Try again.");
+    }
+    setVerifying(false);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     window.location.href = "/login";
@@ -104,7 +120,7 @@ const Profile = () => {
     return <div className="text-center p-10 text-gray-800">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-[#fdf8f3] via-[#e6d5c3] to-[#cbb89d] p-6">
+  <div className="min-h-screen bg-gradient-to-r from-white via-[#fdf8f3] to-white p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-[#5c4033] mb-4">Profile</h1>
         {message && (
@@ -112,6 +128,8 @@ const Profile = () => {
             {message}
           </div>
         )}
+
+        {/* Profile Card */}
         <div className="bg-[#fff8f0] shadow-lg rounded-2xl p-6 border border-[#e6d5c3]">
           <div className="flex items-center space-x-6 mb-6">
             {preview ? (
@@ -131,8 +149,22 @@ const Profile = () => {
               </h2>
               <p className="text-[#7b5e57]">@{user.username}</p>
               <p className="text-[#a58d6f]">{user.email}</p>
+
+              {/* Verify Email Button */}
+              {user?.role === "student" && !emailVerificationStatus.isVerified && (
+                <Button
+                  onClick={handleVerifyEmail}
+                  className="mt-2 bg-[#5c4033] hover:bg-[#7b5e57] text-white px-4 py-2 rounded-lg shadow"
+                  disabled={verifying || emailVerificationStatus.loading}
+                >
+                  {verifying || emailVerificationStatus.loading
+                    ? "Sending OTP..."
+                    : "Verify My Email"}
+                </Button>
+              )}
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4 text-[#5c4033] text-sm">
             <p>
               <strong>Phone:</strong> {user.phone || "-"}
@@ -155,7 +187,10 @@ const Profile = () => {
             </p>
           </div>
         </div>
+
+        {/* Edit Profile + Change Password */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Edit Profile */}
           <div className="bg-[#fff8f0] shadow-lg rounded-2xl p-6 border border-[#e6d5c3]">
             <h2 className="text-lg font-semibold mb-4 text-[#5c4033]">
               Edit Profile
@@ -206,6 +241,8 @@ const Profile = () => {
               </Button>
             </form>
           </div>
+
+          {/* Change Password */}
           <div className="bg-[#fff8f0] shadow-lg rounded-2xl p-6 border border-[#e6d5c3]">
             <h2 className="text-lg font-semibold mb-4 text-[#5c4033]">
               Change Password
@@ -246,6 +283,8 @@ const Profile = () => {
             </form>
           </div>
         </div>
+
+        {/* Logout */}
         <div className="text-center">
           <Button
             onClick={handleLogout}

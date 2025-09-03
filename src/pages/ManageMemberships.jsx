@@ -1,0 +1,324 @@
+import { useEffect, useState } from 'react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { useToast } from '../hooks/use-toast';
+import useMembershipStore from '../store/membershipStore';
+
+export default function ManageMemberships() {
+  const { toast } = useToast();
+  const { 
+    memberships, 
+    loading, 
+    error, 
+    getAllMemberships, 
+    approveMembership, 
+    rejectMembership,
+    deleteMembership 
+  } = useMembershipStore();
+  
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedMembership, setSelectedMembership] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState(''); // 'approve', 'reject', 'delete'
+  const [expiryMonths, setExpiryMonths] = useState(1);
+  const [rejectionReason, setRejectionReason] = useState('');
+  
+  useEffect(() => {
+    getAllMemberships();
+  }, [getAllMemberships]);
+  
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error
+      });
+    }
+  }, [error, toast]);
+  
+  const openDialog = (type, membership) => {
+    setDialogType(type);
+    setSelectedMembership(membership);
+    setDialogOpen(true);
+    
+    // Reset form values
+    if (type === 'approve') {
+      setExpiryMonths(1);
+    } else if (type === 'reject') {
+      setRejectionReason('');
+    }
+  };
+  
+  const handleAction = async () => {
+    try {
+      if (dialogType === 'approve') {
+        await approveMembership(selectedMembership._id, expiryMonths);
+        toast({
+          title: "Success",
+          description: "Membership approved successfully"
+        });
+      } else if (dialogType === 'reject') {
+        await rejectMembership(selectedMembership._id, rejectionReason);
+        toast({
+          title: "Success",
+          description: "Membership rejected successfully"
+        });
+      } else if (dialogType === 'delete') {
+        await deleteMembership(selectedMembership._id);
+        toast({
+          title: "Success",
+          description: "Membership deleted successfully"
+        });
+      }
+      setDialogOpen(false);
+      // Refresh memberships
+      getAllMemberships();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to process request"
+      });
+    }
+  };
+  
+  const getFilteredMemberships = () => {
+    if (!memberships) return [];
+    
+    switch (activeTab) {
+      case 'pending':
+        return memberships.filter(m => m.status === 'Pending');
+      case 'active':
+        return memberships.filter(m => m.status === 'Active');
+      case 'rejected':
+        return memberships.filter(m => m.status === 'Rejected');
+      case 'expired':
+        return memberships.filter(m => m.status === 'Expired');
+      default:
+        return memberships;
+    }
+  };
+  
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Pending':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>;
+      case 'Active':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>;
+      case 'Rejected':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected</span>;
+      case 'Expired':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Expired</span>;
+      default:
+        return null;
+    }
+  };
+  
+  const filteredMemberships = getFilteredMemberships();
+
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">Manage Memberships</h1>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          <TabsTrigger value="expired">Expired</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={activeTab} className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{activeTab === 'all' ? 'All Memberships' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Memberships`}</CardTitle>
+              <CardDescription>
+                Manage library membership requests and active memberships
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              ) : filteredMemberships.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No memberships found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Email Verified</TableHead>
+                        <TableHead>Submission Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredMemberships.map((membership) => (
+                        <TableRow key={membership._id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{membership.user?.fullName || 'Unknown User'}</p>
+                              <p className="text-sm text-gray-500">{membership.user?.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(membership.status)}</TableCell>
+                          <TableCell>
+                            {membership.isEmailVerified ? (
+                              <span className="text-green-600">✓ Verified</span>
+                            ) : (
+                              <span className="text-red-600">✗ Not Verified</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{new Date(membership.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              {membership.status === 'Pending' && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => openDialog('approve', membership)}
+                                    disabled={!membership.isEmailVerified}
+                                    title={!membership.isEmailVerified ? "Email must be verified first" : "Approve membership"}
+                                  >
+                                    Approve
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => openDialog('reject', membership)}
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                onClick={() => openDialog('delete', membership)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Dialog for approve/reject/delete actions */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          {dialogType === 'approve' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Approve Membership</DialogTitle>
+                <DialogDescription>
+                  Set the membership expiry period for this user.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expiryMonths">Membership Duration (months)</Label>
+                  <Input 
+                    id="expiryMonths" 
+                    type="number" 
+                    min="1" 
+                    max="12" 
+                    value={expiryMonths} 
+                    onChange={(e) => setExpiryMonths(parseInt(e.target.value))} 
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">
+                    The membership will be valid until {new Date(new Date().setMonth(new Date().getMonth() + parseInt(expiryMonths))).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleAction}>Approve Membership</Button>
+              </DialogFooter>
+            </>
+          )}
+          
+          {dialogType === 'reject' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Reject Membership</DialogTitle>
+                <DialogDescription>
+                  Provide a reason for rejecting this membership request.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                  <textarea 
+                    id="rejectionReason" 
+                    value={rejectionReason} 
+                    onChange={(e) => setRejectionReason(e.target.value)} 
+                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px]"
+                    placeholder="Explain why this membership request is being rejected"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleAction}>Reject Membership</Button>
+              </DialogFooter>
+            </>
+          )}
+          
+          {dialogType === 'delete' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Delete Membership</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this membership record? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <div className="rounded-md bg-red-50 p-4 border border-red-200">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.485 3.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 3.495zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">Warning</h3>
+                      <p className="mt-2 text-sm text-red-700">
+                        This will permanently delete the membership record and any associated files.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleAction}>Delete Membership</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

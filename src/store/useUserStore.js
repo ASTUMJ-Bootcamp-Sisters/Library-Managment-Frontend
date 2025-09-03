@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import api from "../api/auth";
+import { toast } from "../hooks/use-toast";
 
 const useUserStore = create((set, get) => ({
   users: [],
@@ -25,7 +26,11 @@ const useUserStore = create((set, get) => ({
         ),
       });
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update blacklist status");
+      toast({
+        title: "Error",
+        description: err?.response?.data?.message || "Failed to update blacklist status",
+        variant: "destructive"
+      });
     }
   },
   assignRole: async (userId, role) => {
@@ -37,7 +42,11 @@ const useUserStore = create((set, get) => ({
         ),
       });
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update user role");
+      toast({
+        title: "Error",
+        description: err?.response?.data?.message || "Failed to update user role",
+        variant: "destructive"
+      });
     }
   },
 }));

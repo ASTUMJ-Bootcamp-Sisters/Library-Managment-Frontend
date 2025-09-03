@@ -15,7 +15,9 @@ import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
 import Login from "./pages/Login";
 import ManageBooks from "./pages/ManageBooks";
+import ManageMemberships from "./pages/ManageMemberships";
 import ManageUsers from "./pages/ManageUsers";
+import Membership from "./pages/Membership";
 import Profile from "./pages/Profile";
 import ReadingHistory from "./pages/ReadingHistory";
 import SignUp from "./pages/SignUp";
@@ -163,6 +165,14 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/Membership"
+          element={
+            <ProtectedRoute>
+              <Membership />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Dynamic profile route */}
         <Route
@@ -220,7 +230,14 @@ const AppRoutes = () => {
             </AdminRoute>
           }
         />
-        
+        <Route
+          path="/ManageMemberships"
+          element={
+            <AdminRoute>
+              <ManageMemberships />
+            </AdminRoute>
+          }
+        />
         <Route
           path="/AdminSettings"
           element={

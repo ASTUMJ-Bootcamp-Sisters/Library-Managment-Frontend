@@ -42,6 +42,7 @@ export default function Sidebar() {
     { href: "/Borrow", icon: BookCopy, label: "Borrow a Book" },
     { href: "/Favorites", icon: Heart, label: "Favorites" },
     { href: "/ReadingHistory", icon: History, label: "Reading History" },
+    { href: "/Membership", icon: BookMarked, label: "Membership" },
     { href: "/Profile", icon: User, label: "Profile" },
   ];
   
@@ -51,6 +52,7 @@ export default function Sidebar() {
     { href: "/ManageBooks", icon: Book, label: "Manage Books" },
     { href: "/ManageUsers", icon: Users, label: "Manage Users" },
     { href: "/BorrowingRequests", icon: BookMarked, label: "Borrowing Requests" },
+    { href: "/ManageMemberships", icon: Users, label: "Manage Memberships" },
     { href: "/BorrowHistory", icon: History, label: "Borrow History" },
     { href: "/AdminSettings", icon: Settings, label: "Settings" },
     { href: "/AdminProfile", icon: User, label: "Profile" },
