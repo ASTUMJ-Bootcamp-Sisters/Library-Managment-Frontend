@@ -201,3 +201,27 @@ export const rateBook = async (bookId, data) => {
     };
   }
 };
+
+// get recent book
+export const getRecentBooks = async () => {
+  try {
+    const res = await api.get(`${BASE_URL}/recent`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching recent books:", err);
+    const errorMessage = err.response?.data?.message || "Failed to fetch recent books";
+    throw { ...err, mesage: errorMessage };
+  }
+};
+
+// get recommonded books
+export const getRecomendedBooks = async () => {
+  try {
+    const res = await api.get(`${BASE_URL}/recommended`);
+    return res.data;
+  } catch (err) {
+    console.error(" Error fetching recommended books:", err);
+    const errorMessage = err.response?.data?.message || "Failed to fech recommended books";
+    throw { ...err, message: errorMessage};
+  }
+};
