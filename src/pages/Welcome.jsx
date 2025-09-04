@@ -16,9 +16,10 @@ const Welcome = () => {
     const fetchBooks = async () => {
       setLoading(true);
       try {
-        const data = await getAllBooks();
-        setBooks(data);
-      // eslint-disable-next-line no-unused-vars
+        const response = await getAllBooks();
+        // If response is { success, data }, use response.data; else fallback to response
+        const booksArray = Array.isArray(response) ? response : response?.data || [];
+        setBooks(booksArray);
       } catch (e) {
         setBooks([]);
       } finally {

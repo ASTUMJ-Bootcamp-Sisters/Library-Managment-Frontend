@@ -1,4 +1,5 @@
 import { addBook, deleteBook, getAllBooks, updateBook } from "@/api/bookApi";
+import { toast } from "@/hooks/use-toast";
 import { create } from "zustand";
 
 const initialForm = {
@@ -25,10 +26,18 @@ const useBookStore = create((set, get) => ({
   fetchBooks: async () => {
     set({ loading: true, error: "" });
     try {
-      const data = await getAllBooks();
+      const response = await getAllBooks();
+      // Handle new standardized backend response format
+      const data = response.success ? response.data : response;
       set({ books: data });
-    } catch {
-      set({ error: "Failed to fetch books" });
+    } catch (error) {
+      const errorMsg = error?.response?.data?.message || "Failed to fetch books";
+      set({ error: errorMsg });
+      toast({
+        title: "Error",
+        description: errorMsg,
+        variant: "destructive"
+      });
     } finally {
       set({ loading: false });
     }
@@ -36,17 +45,36 @@ const useBookStore = create((set, get) => ({
 
   saveBook: async () => {
     const { form, editingId, fetchBooks } = get();
-    set({ error: "" });
+    set({ loading: true, error: "" });
     try {
+      let response;
+      
       if (editingId) {
-        await updateBook(editingId, form);
+        response = await updateBook(editingId, form);
+        toast({
+          title: "Success",
+          description: "Book updated successfully",
+        });
       } else {
-        await addBook(form);
+        response = await addBook(form);
+        toast({
+          title: "Success",
+          description: "Book added successfully",
+        });
       }
-      set({ form: initialForm, editingId: null });
+      
+      set({ form: initialForm, editingId: null, loading: false });
       fetchBooks();
-    } catch {
-      set({ error: "Failed to save book" });
+      return response;
+    } catch (error) {
+      const errorMsg = error?.response?.data?.message || (editingId ? "Failed to update book" : "Failed to add book");
+      set({ error: errorMsg, loading: false });
+      toast({
+        title: "Error",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      return { success: false, error: errorMsg };
     }
   },
 
@@ -70,11 +98,24 @@ const useBookStore = create((set, get) => ({
 
   deleteBookById: async (id) => {
     const { fetchBooks } = get();
+    set({ loading: true, error: "" });
     try {
-      await deleteBook(id);
+      const response = await deleteBook(id);
+      toast({
+        title: "Success",
+        description: response.message || "Book deleted successfully",
+      });
       fetchBooks();
-    } catch {
-      set({ error: "Failed to delete book" });
+      return { success: true };
+    } catch (error) {
+      const errorMsg = error?.response?.data?.message || "Failed to delete book";
+      set({ error: errorMsg, loading: false });
+      toast({
+        title: "Error",
+        description: errorMsg,
+        variant: "destructive"
+      });
+      return { success: false, error: errorMsg };
     }
   },
 

@@ -52,3 +52,28 @@ export const returnBook = async (borrowId) => {
     throw error.response?.data?.message || 'Failed to return book';
   }
 };
+
+// Student: Get own borrow history
+export const getStudentBorrowHistory = async () => {
+  try {
+    const response = await api.get('/borrow/history');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch borrow history';
+  }
+};
+
+// Admin: Get all borrow history or for specific student (supports filter object)
+export const getAdminBorrowHistory = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) params.append(key, value);
+    });
+    const url = '/borrow/admin/history' + (params.toString() ? `?${params}` : '');
+    const response = await api.get(url);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch borrow history';
+  }
+};

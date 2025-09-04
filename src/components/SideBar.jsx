@@ -1,19 +1,19 @@
 import useAuthStore from "@/store/authStore";
 import {
-  Book,
-  BookCopy,
-  BookMarked,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  History,
-  Info,
-  LayoutDashboard,
-  LifeBuoy,
-  MessageSquare,
-  Settings,
-  User,
-  Users
+    Book,
+    BookCopy,
+    BookMarked,
+    ChevronLeft,
+    ChevronRight,
+    Heart,
+    History,
+    Info,
+    LayoutDashboard,
+    LifeBuoy,
+    MessageSquare,
+    Settings,
+    User,
+    Users
 } from "lucide-react";
 import { useState } from "react";
 
@@ -51,6 +51,7 @@ export default function Sidebar() {
     { href: "/ManageBooks", icon: Book, label: "Manage Books" },
     { href: "/ManageUsers", icon: Users, label: "Manage Users" },
     { href: "/BorrowingRequests", icon: BookMarked, label: "Borrowing Requests" },
+    { href: "/BorrowHistory", icon: History, label: "Borrow History" },
     { href: "/AdminSettings", icon: Settings, label: "Settings" },
     { href: "/AdminProfile", icon: User, label: "Profile" },
   ];
