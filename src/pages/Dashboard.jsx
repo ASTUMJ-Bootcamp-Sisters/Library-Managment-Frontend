@@ -64,7 +64,7 @@ const Dashboard = () => {
         {/* Recently Borrowed */}
         <div className="bg-white rounded-2xl shadow-md p-6 border border-[#e5d6c5]">
           <h2 className="text-xl font-semibold text-[#5c4033] mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-[#c68c53]" /> Recently Borrowed
+            <Clock className="w-5 h-5 text-[#c68c53]" /> Recently Added
           </h2>
           <div className="space-y-4">
             {recentBooks.length > 0 ? (
@@ -82,7 +82,7 @@ const Dashboard = () => {
                   <div>
                     <h3 className="font-medium text-[#5c4033]">{book.title}</h3>
                     <p className="text-sm text-[#7b5e57]">by {book.author}</p>
-                    <p className="text-xs text-[#a1887f]">Borrowed recently</p>
+                    <p className="text-xs text-[#a1887f]">Added recently</p>
                   </div>
                 </div>
               ))

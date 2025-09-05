@@ -1,4 +1,4 @@
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { addComment, getBookById, rateBook } from "../api/bookApi";
@@ -12,8 +12,10 @@ const BookDetail = () => {
   const [book, setBook] = useState({ comments: [], averageRating: 0 });
   const [newComment, setNewComment] = useState("");
   const [userRating, setUserRating] = useState(0);
+  const [openMenu, setOpenMenu] = useState(null); // track which comment's menu is open
 
-  const currentUserId = "currentUserId";
+  // ✅ Get current user ID from localStorage (saved during login)
+  const currentUserId = localStorage.getItem("userId")?.toString();
 
   useEffect(() => {
     fetchBook();
@@ -23,16 +25,23 @@ const BookDetail = () => {
     try {
       const response = await getBookById(id);
       const bookData = response?.data || response;
+
       setBook({
         ...bookData,
         averageRating: Number(bookData.averageRating) || 0,
         comments: bookData.comments || [],
       });
 
+      // Set user rating if current user already rated
       const currentUserComment = bookData.comments?.find(
-        (c) => c.user?._id === currentUserId
+        (c) =>
+          c.user?._id?.toString() === currentUserId ||
+          c.user?.id?.toString() === currentUserId
       );
       if (currentUserComment) setUserRating(currentUserComment.rating || 0);
+      console.log("Current user ID:", currentUserId);
+      console.log("Book comments users:", book.comments.map(c => c.user?._id || c.user?.id));
+
     } catch (err) {
       console.error("Error fetching book:", err);
     }
@@ -57,6 +66,10 @@ const BookDetail = () => {
     } catch (err) {
       console.error("Error submitting rating:", err);
     }
+  };
+
+  const handleCommentMenu = (commentId) => {
+    setOpenMenu(openMenu === commentId ? null : commentId);
   };
 
   if (!book) return <p>Loading...</p>;
@@ -97,7 +110,6 @@ const BookDetail = () => {
           <p className="text-lg text-gray-700"><strong>Available:</strong> {book.available || 0}</p>
           <p className="text-lg text-gray-700"><strong>Description:</strong> {book.description || "N/A"}</p>
 
-          {/* Average Rating */}
           <p className="mt-2 font-semibold text-yellow-600">
             ⭐ Average Rating: {book.averageRating.toFixed(1)} ({book.comments.length} reviews)
           </p>
@@ -123,7 +135,7 @@ const BookDetail = () => {
         <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
         {book.comments.length > 0 ? (
           book.comments.map((c) => (
-            <div key={c._id} className="border-b py-3 flex gap-3 items-start">
+            <div key={c._id} className="border-b py-3 flex gap-3 items-start relative">
               <Avatar className="bg-slate-400">
                 {c.user?.profileImage ? (
                   <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
@@ -137,6 +149,28 @@ const BookDetail = () => {
                 <p className="font-semibold text-gray-800">{c.user?.fullName || "User"}</p>
                 <p className="text-gray-700">{c.text}</p>
               </div>
+
+              {/* 3-dot menu (only for current user) */}
+              {(c.user?._id?.toString() === currentUserId || c.user?.id?.toString() === currentUserId) && (
+                <div className="relative">
+                  <button
+                    className="absolute top-2 right-2 p-1 text-gray-600 hover:text-gray-900"
+                    onClick={() => handleCommentMenu(c._id)}
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+                  {openMenu === c._id && (
+                    <div className="absolute top-8 right-2 bg-white border shadow-md rounded w-32">
+                      <button className="block w-full px-4 py-2 text-left hover:bg-gray-100">
+                        Edit
+                      </button>
+                      <button className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100">
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))
         ) : (
