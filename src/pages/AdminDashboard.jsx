@@ -25,6 +25,7 @@ const AdminDashboard = () => {
       try {
         const data = await getAdminStats();
         setStats(data);
+      // eslint-disable-next-line no-unused-vars
       } catch (err) {
         setError("Failed to load stats");
       } finally {

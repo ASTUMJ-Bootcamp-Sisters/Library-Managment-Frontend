@@ -20,6 +20,7 @@ const Welcome = () => {
         // If response is { success, data }, use response.data; else fallback to response
         const booksArray = Array.isArray(response) ? response : response?.data || [];
         setBooks(booksArray);
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         setBooks([]);
       } finally {

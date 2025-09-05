@@ -63,6 +63,7 @@ const useAuthStore = create(
       logout: async () => {
         try {
           await api.post("/auth/logout");
+        // eslint-disable-next-line no-unused-vars
         } catch (e) {
           // ignore error, just clear state
         }
