@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { addComment, getBookById, rateBook } from "../api/bookApi";
@@ -45,14 +45,15 @@ const BookDetail = () => {
 
   const fetchBook = useCallback(async () => {
     try {
-      const data = await getBookById(id);
+      const response = await getBookById(id);
+      const bookData = response?.data || response;
       setBook({
-        ...data,
-        averageRating: Number(data.averageRating) || 0,
-        comments: data.comments || [],
+        ...bookData,
+        averageRating: Number(bookData.averageRating) || 0,
+        comments: bookData.comments || [],
       });
 
-      const currentUserComment = data.comments?.find(
+      const currentUserComment = bookData.comments?.find(
         (c) => c.user?._id === currentUserId
       );
       if (currentUserComment) setUserRating(currentUserComment.rating || 0);
@@ -79,7 +80,6 @@ const BookDetail = () => {
 
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return;
-
     try {
       await addComment(id, { text: newComment, rating: userRating });
       setNewComment("");
@@ -198,8 +198,12 @@ const BookDetail = () => {
   if (isLoading) return <p>Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="flex items-center gap-2 mb-4 cursor-pointer" onClick={() => navigate(-1)}>
+    <div className="min-h-screen bg-[#fffaf3] p-6">
+      {/* Back Button */}
+      <div
+        className="flex items-center gap-2 mb-6 cursor-pointer"
+        onClick={() => navigate(-1)}
+      >
         <ArrowLeft className="w-6 h-6 text-[#4a2c1a]" />
         <span className="text-lg font-semibold text-[#4a2c1a]">Back</span>
       </div>
@@ -294,25 +298,52 @@ const BookDetail = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 flex justify-center">
-          <img src={book.image} alt={book.title} className="w-full h-80 object-contain rounded-lg border border-gray-200" />
+      {/* Book Container */}
+      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 flex flex-col md:flex-row gap-6">
+        {/* Book Image */}
+        <div className="md:w-1/3 flex justify-center items-start">
+          <img
+            src={book.image}
+            alt={book.title}
+            className="w-full h-auto max-h-[500px] object-contain rounded-lg border border-gray-200 shadow-md"
+          />
         </div>
 
-        <div className="md:col-span-2 flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-[#4a2c1a]">{book.title}</h1>
-          <p><strong>Author:</strong> {book.author}</p>
-          <p><strong>Category:</strong> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})</p>
-          <p><strong>Language:</strong> {book.language || "N/A"}</p>
-          <p><strong>Publisher:</strong> {book.publisher || "N/A"}</p>
-          <p><strong>Year:</strong> {book.year || "N/A"}</p>
-          <p><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
-          <p><strong>Available:</strong> {book.available || 0}</p>
-          <p><strong>Description:</strong> {book.description || "N/A"}</p>
-
-          <p className="mt-1 font-semibold">
-            Average Rating: {book.averageRating.toFixed(1)} ⭐ ({book.comments.length} reviews)
+        {/* Book Details */}
+        <div className="md:w-2/3 flex flex-col gap-3">
+          <h1 className="text-4xl font-extrabold text-[#4a2c1a]">{book.title}</h1>
+          <p className="text-lg text-gray-700"><strong>Author:</strong> {book.author}</p>
+          <p className="text-lg text-gray-700">
+            <strong>Category:</strong> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})
           </p>
+          <p className="text-lg text-gray-700"><strong>Language:</strong> {book.language || "N/A"}</p>
+          <p className="text-lg text-gray-700"><strong>Publisher:</strong> {book.publisher || "N/A"}</p>
+          <p className="text-lg text-gray-700"><strong>Year:</strong> {book.year || "N/A"}</p>
+          <p className="text-lg text-gray-700"><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
+          <p className="text-lg text-gray-700"><strong>Available:</strong> {book.available || 0}</p>
+          <p className="text-lg text-gray-700"><strong>Description:</strong> {book.description || "N/A"}</p>
+
+          {/* Average Rating */}
+          <p className="mt-2 font-semibold text-yellow-600">
+            ⭐ Average Rating: {book.averageRating.toFixed(1)} ({book.comments.length} reviews)
+          </p>
+        </div>
+      </div>
+
+      {/* Rating Section */}
+      <div className="max-w-6xl mx-auto mt-6 p-6 bg-white shadow-lg rounded-lg">
+        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Your Rating</h2>
+        <div className="flex items-center gap-2 mb-6">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              className={`text-3xl ${userRating >= star ? "text-yellow-500" : "text-gray-300"}`}
+              onClick={() => handleRatingSubmit(star)}
+            >
+              ★
+            </button>
+          ))}
+        </div>
 
           <div className="flex items-center gap-2 mt-2">
             <span>Your Rating:</span>
@@ -341,38 +372,50 @@ const BookDetail = () => {
             </p>
           </div>
 
-          {/* Comments Section */}
-          <div className="mt-4">
-            <h2 className="text-xl font-semibold mb-2">Comments</h2>
-            {book.comments.length > 0 ? (
-              book.comments.map((c) => (
-                <div key={c._id} className="border-b py-2 flex gap-2 items-start">
-                  <div className="flex-1">
-                    <p className="font-semibold">{c.user?.name || "User"}</p>
-                    <p>{c.text}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No comments yet.</p>
-            )}
-
-            <div className="mt-4 flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment"
-                className="border p-2 flex-1 rounded"
-              />
-              <button
-                onClick={handleCommentSubmit}
-                className="bg-[#4a2c1a] text-white px-4 py-2 rounded hover:bg-[#633b25]"
-              >
-                Submit
-              </button>
+        {/* Comments Section */}
+        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
+        {book.comments.length > 0 ? (
+          book.comments.map((c) => (
+            <div key={c._id} className="border-b py-3 flex gap-3 items-start">
+              <Avatar className="bg-slate-400">
+                {c.user?.profileImage ? (
+                  <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
+                ) : (
+                  <AvatarFallback>
+                    {c.user?.fullName ? c.user.fullName.split(" ").map(n => n[0]).join("") : "U"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-800">{c.user?.fullName || "User"}</p>
+                <p className="text-gray-700">{c.text}</p>
+              </div>
             </div>
-          </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No comments yet.</p>
+        )}
+
+        {/* Add Comment */}
+        <div className="mt-6 flex gap-3">
+          <Textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleCommentSubmit();
+              }
+            }}
+            placeholder="Add a comment..."
+            className="flex-1 resize-none h-16 rounded border border-gray-300"
+          />
+          <button
+            onClick={handleCommentSubmit}
+            className="bg-[#4a2c1a] text-white px-5 py-3 rounded hover:bg-[#633b25] flex items-center justify-center"
+          >
+            <Send className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
