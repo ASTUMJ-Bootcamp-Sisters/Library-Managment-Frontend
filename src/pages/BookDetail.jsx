@@ -1,24 +1,16 @@
-import { ArrowLeft, Send, MoreVertical } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/hooks/use-toast";
-
+import { ArrowLeft, Heart, Send } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { addComment, getBookById, rateBook } from "../api/bookApi";
 import { borrowBook } from "../api/borrowApi";
+import { addFavorite, checkFavorite, removeFavorite } from "../api/favoriteApi";
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -28,11 +20,6 @@ const BookDetail = () => {
   const [book, setBook] = useState({ comments: [], averageRating: 0 });
   const [newComment, setNewComment] = useState("");
   const [userRating, setUserRating] = useState(0);
-  const [openMenu, setOpenMenu] = useState(null);
-
-  // ✅ current user id from localStorage
-  const currentUserId = localStorage.getItem("userId")?.toString();
-
   const [borrowDialogOpen, setBorrowDialogOpen] = useState(false);
   const [borrowDuration, setBorrowDuration] = useState("1w");
   const [idCardImage, setIdCardImage] = useState(null);
@@ -41,36 +28,40 @@ const BookDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userMembership, setUserMembership] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
-  // 🔹 Membership status
+  // In a real app, this comes from auth context
+  const currentUserId = "currentUserId";
+
+  // Check membership
   const checkMembershipStatus = async () => {
     try {
-      setUserMembership(null); // TODO: replace with API call
+      setUserMembership(null); // fake as non-member for now
     } catch (err) {
       console.error("Error checking membership status:", err);
       setUserMembership(null);
     }
   };
 
-  // 🔹 Fetch book
   const fetchBook = useCallback(async () => {
     try {
       const response = await getBookById(id);
       const bookData = response?.data || response;
-
       setBook({
         ...bookData,
         averageRating: Number(bookData.averageRating) || 0,
-        comments: bookData.comments || []
+        comments: bookData.comments || [],
       });
 
-      // set user rating if already rated
       const currentUserComment = bookData.comments?.find(
-        (c) =>
-          c.user?._id?.toString() === currentUserId ||
-          c.user?.id?.toString() === currentUserId
+        (c) => c.user?._id === currentUserId
       );
       if (currentUserComment) setUserRating(currentUserComment.rating || 0);
+
+      // check favorite status
+      const favStatus = await checkFavorite(id);
+      setIsFavorite(favStatus?.isFavorite || false);
     } catch (err) {
       console.error("Error fetching book:", err);
       toast({
@@ -82,17 +73,15 @@ const BookDetail = () => {
   }, [id, toast, currentUserId]);
 
   useEffect(() => {
-    const initializeData = async () => {
+    const init = async () => {
       setIsLoading(true);
       await fetchBook();
       await checkMembershipStatus();
       setIsLoading(false);
     };
-
-    initializeData();
+    init();
   }, [id, fetchBook]);
 
-  // 🔹 Comment submit
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return;
     try {
@@ -104,7 +93,6 @@ const BookDetail = () => {
     }
   };
 
-  // 🔹 Rating submit
   const handleRatingSubmit = async (value) => {
     setUserRating(value);
     try {
@@ -120,12 +108,6 @@ const BookDetail = () => {
     }
   };
 
-  // 🔹 Menu toggle
-  const handleCommentMenu = (commentId) => {
-    setOpenMenu(openMenu === commentId ? null : commentId);
-  };
-
-  // 🔹 Borrow dialog open
   const handleBorrowDialogOpen = () => {
     if (book.available <= 0) {
       toast({
@@ -135,76 +117,92 @@ const BookDetail = () => {
       });
       return;
     }
+    // Reset modal state for responsiveness
+    setBorrowDuration("1w");
+    setIdCardImage(null);
+    setPaymentImage(null);
+    setBorrowNote("");
+    setIsSubmitting(false);
     setBorrowDialogOpen(true);
   };
 
-  // 🔹 File change
   const handleFileChange = (e, setter) => {
     const file = e.target.files[0];
     if (file) setter(file);
   };
 
-  // 🔹 Borrow submit
   const handleBorrowSubmit = async (e) => {
     e.preventDefault();
-
     const isMember = userMembership?.status === "Active";
+    // Validate required fields
     if (!isMember) {
-      if (!idCardImage) {
+      if (!idCardImage || !paymentImage) {
         toast({
-          title: "ID Card Required",
-          description: "Please upload your ID card image",
-          variant: "destructive"
-        });
-        return;
-      }
-      if (!paymentImage) {
-        toast({
-          title: "Payment Proof Required",
-          description: "Please upload payment proof",
+          title: "Missing Uploads",
+          description: "Non-members must upload both ID card and payment images.",
           variant: "destructive"
         });
         return;
       }
     }
-
     try {
       setIsSubmitting(true);
-
       const formData = new FormData();
       formData.append("bookId", id);
       formData.append("duration", borrowDuration);
       if (borrowNote) formData.append("note", borrowNote);
-
-      if (!isMember) {
+      if (isMember) {
+        if (paymentImage) formData.append("paymentImage", paymentImage);
+      } else {
         formData.append("idCardImage", idCardImage);
         formData.append("paymentImage", paymentImage);
       }
-
       const response = await borrowBook(formData);
-
       setBorrowDialogOpen(false);
       setBorrowDuration("1w");
       setBorrowNote("");
       setIdCardImage(null);
       setPaymentImage(null);
-
       toast({
-        title: "Success",
-        description: response.isMember
-          ? "Book borrowed successfully"
-          : "Borrow request submitted successfully and awaiting approval",
+        title: "Success!",
+        description: "Borrow request submitted!",
         variant: "default"
       });
     } catch (err) {
-      console.error("Error borrowing book:", err);
       toast({
         title: "Error",
-        description: err.message || "Failed to borrow book",
+        description: typeof err === "string" ? err : (err?.message || "Failed to borrow book"),
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFavoriteToggle = async () => {
+    try {
+      if (isFavorite) {
+        await removeFavorite(id);
+        setIsFavorite(false);
+        toast({
+          title: "Removed from favorites",
+          description: `${book.title} was removed from your favorites`,
+        });
+      } else {
+        await addFavorite({ bookId: id });
+        setIsFavorite(true);
+        toast({
+          title: "Added to favorites",
+          description: `${book.title} was added to your favorites`,
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+      toast({
+        title: "Error",
+        description: "Could not update favorites",
+        variant: "destructive"
+      });
     }
   };
 
@@ -227,16 +225,13 @@ const BookDetail = () => {
           <DialogHeader>
             <DialogTitle>Borrow Book</DialogTitle>
             <DialogDescription>
-              {userMembership?.status === "Active" ? (
-                "Complete the form below to borrow this book."
-              ) : (
-                "As a non-member, you need to upload your ID card and payment proof to borrow this book."
-              )}
+              {userMembership?.status === "Active"
+                ? "Complete the form below to borrow this book."
+                : "As a non-member, you need to upload your ID card and payment proof to borrow this book."}
             </DialogDescription>
           </DialogHeader>
-          
           <form onSubmit={handleBorrowSubmit} className="space-y-4">
-            {/* Duration Selection */}
+            {/* Duration */}
             <div className="space-y-2">
               <Label>Borrowing Duration</Label>
               <RadioGroup value={borrowDuration} onValueChange={setBorrowDuration} className="flex gap-4">
@@ -250,35 +245,33 @@ const BookDetail = () => {
                 </div>
               </RadioGroup>
             </div>
-            
-            {/* ID Card Upload (for non-members) */}
+
+            {/* Non-member uploads */}
             {userMembership?.status !== "Active" && (
-              <div className="space-y-2">
-                <Label htmlFor="idCard">ID Card Image (Required)</Label>
-                <input
-                  type="file"
-                  id="idCard"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, setIdCardImage)}
-                  className="w-full border rounded p-2"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="idCard">ID Card Image</Label>
+                  <input
+                    type="file"
+                    id="idCard"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, setIdCardImage)}
+                    className="w-full border rounded p-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment">Payment Screenshot</Label>
+                  <input
+                    type="file"
+                    id="payment"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, setPaymentImage)}
+                    className="w-full border rounded p-2"
+                  />
+                </div>
+              </>
             )}
-            
-            {/* Payment Proof Upload (for non-members) */}
-            {userMembership?.status !== "Active" && (
-              <div className="space-y-2">
-                <Label htmlFor="payment">Payment Screenshot (Required)</Label>
-                <input
-                  type="file"
-                  id="payment"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, setPaymentImage)}
-                  className="w-full border rounded p-2"
-                />
-              </div>
-            )}
-            
+
             {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="note">Notes (Optional)</Label>
@@ -290,20 +283,12 @@ const BookDetail = () => {
                 className="w-full"
               />
             </div>
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setBorrowDialogOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setBorrowDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                className="bg-[#4a2c1a] hover:bg-[#633b25]" 
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="bg-[#4a2c1a] hover:bg-[#633b25]" disabled={isSubmitting}>
                 {isSubmitting ? "Processing..." : "Borrow"}
               </Button>
             </DialogFooter>
@@ -311,18 +296,25 @@ const BookDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Book Container */}
+      {/* Book Detail */}
       <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 flex flex-col md:flex-row gap-6">
-        {/* Book Image */}
-        <div className="md:w-1/3 flex justify-center items-start">
+        {/* Image */}
+        <div className="md:w-1/3 flex justify-center items-start relative">
           <img
             src={book.image}
             alt={book.title}
             className="w-full h-auto max-h-[500px] object-contain rounded-lg border border-gray-200 shadow-md"
           />
+          {/* Favorite Button */}
+          <button
+            onClick={handleFavoriteToggle}
+            className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:scale-110 transition"
+          >
+            <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+          </button>
         </div>
 
-        {/* Book Details */}
+        {/* Details */}
         <div className="md:w-2/3 flex flex-col gap-3">
           <h1 className="text-4xl font-extrabold text-[#4a2c1a]">{book.title}</h1>
           <p className="text-lg text-gray-700"><strong>Author:</strong> {book.author}</p>
@@ -336,13 +328,30 @@ const BookDetail = () => {
           <p className="text-lg text-gray-700"><strong>Available:</strong> {book.available || 0}</p>
           <p className="text-lg text-gray-700"><strong>Description:</strong> {book.description || "N/A"}</p>
 
+          {/* Average Rating */}
           <p className="mt-2 font-semibold text-yellow-600">
             ⭐ Average Rating: {book.averageRating.toFixed(1)} ({book.comments.length} reviews)
           </p>
+
+          {/* Borrow Button */}
+          <div className="mt-4">
+            <Button 
+              className="bg-[#4a2c1a] hover:bg-[#633b25]" 
+              onClick={handleBorrowDialogOpen}
+              disabled={book.available <= 0}
+            >
+              {book.available > 0 ? "Borrow this book" : "Currently unavailable"}
+            </Button>
+            <p className="mt-1 text-sm text-gray-500">
+              {book.available > 0 
+                ? `${book.available} copies available` 
+                : "All copies are currently borrowed"}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Rating Section */}
+      {/* Rating & Comments */}
       <div className="max-w-6xl mx-auto mt-6 p-6 bg-white shadow-lg rounded-lg">
         <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Your Rating</h2>
         <div className="flex items-center gap-2 mb-6">
@@ -357,67 +366,38 @@ const BookDetail = () => {
           ))}
         </div>
 
-
-          {/* Borrow Button */}
-          <div className="mt-4">
-            <Button 
-              className="bg-[#563019] hover:bg-[#7b4a2f] text-white" 
-              onClick={handleBorrowDialogOpen}
-              disabled={book.available <= 0}
-            >
-              {book.available > 0 ? "Borrow this book" : "Currently unavailable"}
-            </Button>
-            <p className="mt-1 text-sm text-gray-500">
-              {book.available > 0 
-                ? `${book.available} copies available` 
-                : "All copies are currently borrowed"}
-            </p>
-          </div>
-
-        {/* Comments Section */}
-        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
-        {book.comments.length > 0 ? (
-          book.comments.map((c) => (
-            <div key={c._id} className="border-b py-3 flex gap-3 items-start relative">
-              <Avatar className="bg-slate-400">
-                {c.user?.profileImage ? (
-                  <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
-                ) : (
-                  <AvatarFallback>
-                    {c.user?.fullName ? c.user.fullName.split(" ").map(n => n[0]).join("") : "U"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-800">{c.user?.fullName || "User"}</p>
-                <p className="text-gray-700">{c.text}</p>
-              </div>
-
-              {/* 3-dot menu (only for current user) */}
-              {(c.user?._id?.toString() === currentUserId || c.user?.id?.toString() === currentUserId) && (
-                <div className="relative">
-                  <button
-                    className="absolute top-2 right-2 p-1 text-gray-600 hover:text-gray-900"
-                    onClick={() => handleCommentMenu(c._id)}
-                  >
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
-                  {openMenu === c._id && (
-                    <div className="absolute top-8 right-2 bg-white border shadow-md rounded w-32">
-                      <button className="block w-full px-4 py-2 text-left hover:bg-gray-100">
-                        Edit
-                      </button>
-                      <button className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100">
-                        Delete
-                      </button>
-                    </div>
-                  )}
+        {/* Comments Toggle */}
+        <button
+          className="mb-4 px-4 py-2 bg-gray-200 rounded text-[#4a2c1a] font-semibold"
+          onClick={() => setShowComments((prev) => !prev)}
+        >
+          {showComments ? "Hide Comments" : `Show Comments (${book.comments.length})`}
+        </button>
+        {showComments && (
+          <>
+            <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
+            {book.comments.length > 0 ? (
+              book.comments.map((c) => (
+                <div key={c._id} className="border-b py-3 flex gap-3 items-start">
+                  <Avatar className="bg-slate-400">
+                    {c.user?.profileImage ? (
+                      <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
+                    ) : (
+                      <AvatarFallback>
+                        {c.user?.fullName ? c.user.fullName.split(" ").map(n => n[0]).join("") : "U"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{c.user?.fullName || "User"}</p>
+                    <p className="text-gray-700">{c.text}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500">No comments yet.</p>
+              ))
+            ) : (
+              <p className="text-gray-500">No comments yet.</p>
+            )}
+          </>
         )}
 
         {/* Add Comment */}

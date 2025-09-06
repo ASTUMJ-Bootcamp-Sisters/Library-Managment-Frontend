@@ -39,7 +39,7 @@ export default function Sidebar() {
     { href: "/Dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/AllBooks", icon: Book, label: "All Books" },
     // { href: "/Borrow", icon: BookCopy, label: "Borrow a Book" },
-    { href: "/Favorites", icon: Heart, label: "Favorites" },
+    { href: "/Favorites", icon: Heart, label: "My Shelf" },
     { href: "/ReadingHistory", icon: History, label: "Reading History" },
     { href: "/Membership", icon: BookMarked, label: "Membership" },
     { href: "/Profile", icon: User, label: "Profile" },

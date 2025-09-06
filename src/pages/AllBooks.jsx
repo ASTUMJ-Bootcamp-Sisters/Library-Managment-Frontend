@@ -19,7 +19,8 @@ const AllBooks = () => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const [dueDate, setDueDate] = useState("");
+  const [borrowDuration, setBorrowDuration] = useState("1w");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [idCardImage, setIdCardImage] = useState(null);
   const [paymentImage, setPaymentImage] = useState(null);
   const [note, setNote] = useState("");
@@ -42,20 +43,16 @@ const AllBooks = () => {
   const handleBorrow = (book) => {
     setSelectedBook(book);
     setOpenDialog(true);
-    setDueDate("");
+    setBorrowDuration("1w");
+    setIdCardImage(null);
     setPaymentImage(null);
     setNote("");
   };
 
   const handleConfirmBorrow = async () => {
     if (!selectedBook) return;
-    const formData = new FormData();
-    formData.append("bookId", selectedBook._id);
-    formData.append("duration", dueDate ? (dueDate ? "1w" : "2w") : "1w"); // You may want to improve duration logic
-    formData.append("note", note);
-    if (membership?.status === "Active") {
-      if (paymentImage) formData.append("paymentImage", paymentImage);
-    } else {
+    const isMember = membership?.status === "Active";
+    if (!isMember) {
       if (!idCardImage || !paymentImage) {
         toast({
           title: "Missing Uploads",
@@ -64,6 +61,15 @@ const AllBooks = () => {
         });
         return;
       }
+    }
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append("bookId", selectedBook._id);
+    formData.append("duration", borrowDuration);
+    if (note) formData.append("note", note);
+    if (isMember) {
+      if (paymentImage) formData.append("paymentImage", paymentImage);
+    } else {
       formData.append("idCardImage", idCardImage);
       formData.append("paymentImage", paymentImage);
     }
@@ -75,12 +81,18 @@ const AllBooks = () => {
         variant: "default"
       });
       setOpenDialog(false);
+      setBorrowDuration("1w");
+      setIdCardImage(null);
+      setPaymentImage(null);
+      setNote("");
     } catch (err) {
       toast({
         title: "Error",
         description: typeof err === "string" ? err : (err?.message || "Failed to borrow book"),
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,19 +133,25 @@ const AllBooks = () => {
             <DialogHeader>
               <DialogTitle>Borrow Book</DialogTitle>
               <DialogDescription>
-                Do you want to borrow <b>{selectedBook.title}</b>?
+                {membership?.status === "Active"
+                  ? "Complete the form below to borrow this book."
+                  : "As a non-member, you need to upload your ID card and payment proof to borrow this book."}
               </DialogDescription>
             </DialogHeader>
-            {/* Borrow Form for both members and non-members */}
-            <div className="flex flex-col gap-3 mt-4">
+            <form onSubmit={(e) => { e.preventDefault(); handleConfirmBorrow(); }} className="flex flex-col gap-3 mt-4">
+              {/* Duration */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium">Due Date</label>
-                <input
-                  type="date"
-                  className="border rounded px-2 py-1"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
+                <label className="text-sm font-medium mb-1">Borrowing Duration</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="duration" value="1w" checked={borrowDuration === "1w"} onChange={() => setBorrowDuration("1w")} />
+                    <span>1 Week</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="duration" value="2w" checked={borrowDuration === "2w"} onChange={() => setBorrowDuration("2w")} />
+                    <span>2 Weeks</span>
+                  </label>
+                </div>
               </div>
               {/* Non-member required fields */}
               {!(membership?.status === "Active") && (
@@ -181,21 +199,23 @@ const AllBooks = () => {
                   placeholder="Optional note"
                 />
               </div>
-            </div>
-            <DialogFooter className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setOpenDialog(false)}
-                className="px-4 py-2 bg-[#e6c9a9] text-[#4a2c1a] rounded-lg font-semibold hover:bg-[#fdf0e0]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmBorrow}
-                className="px-4 py-2 bg-[#4a2c1a] text-white rounded-lg font-semibold hover:bg-[#5c4033]"
-              >
-                Confirm
-              </button>
-            </DialogFooter>
+              <DialogFooter className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenDialog(false)}
+                  className="px-4 py-2 bg-[#e6c9a9] text-[#4a2c1a] rounded-lg font-semibold hover:bg-[#fdf0e0]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#4a2c1a] text-white rounded-lg font-semibold hover:bg-[#5c4033]"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Processing..." : "Confirm"}
+                </button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       )}
