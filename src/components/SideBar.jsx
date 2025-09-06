@@ -15,6 +15,7 @@ import {
   Users
 } from "lucide-react";
 import { useState } from "react";
+import FeedbackDialog from "./FeedbackDialog";
 
 const SidebarLink = ({ href, icon: Icon, label, active, collapsed }) => (
   <a
@@ -60,8 +61,12 @@ export default function Sidebar() {
   const bottomLinks = [
     { href: "/about", icon: Info, label: "About" },
     { href: "/support", icon: LifeBuoy, label: "Support" },
-    { href: "/feedback", icon: MessageSquare, label: "Feedback" },
+    isAdmin
+      ? { href: "/admin-feedback", icon: MessageSquare, label: "View Feedback", isViewFeedback: true }
+      : { href: "#feedback", icon: MessageSquare, label: "Feedback", isFeedback: true },
   ];
+
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <div
@@ -111,14 +116,33 @@ export default function Sidebar() {
 
       {/* About, Support, Feedback */}
       <div className="p-4 border-t" style={{ borderColor: "#e5d6c5" }}>
-        {bottomLinks.map((item) => (
-          <SidebarLink
-            key={item.label}
-            {...item}
-            active={window.location.pathname === item.href}
-            collapsed={collapsed}
-          />
-        ))}
+        {bottomLinks.map((item) =>
+          item.isFeedback ? (
+            <button
+              key={item.label}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-[#7b5e57] hover:bg-[#f3ebe3] hover:text-[#5c4033] w-full`}
+              onClick={() => setFeedbackOpen(true)}
+            >
+              <item.icon className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          ) : item.isViewFeedback ? (
+            <SidebarLink
+              key={item.label}
+              {...item}
+              active={window.location.pathname === item.href}
+              collapsed={collapsed}
+            />
+          ) : (
+            <SidebarLink
+              key={item.label}
+              {...item}
+              active={window.location.pathname === item.href}
+              collapsed={collapsed}
+            />
+          )
+        )}
+        {!isAdmin && <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />}
       </div>
     </div>
   );

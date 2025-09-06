@@ -1,9 +1,10 @@
 
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
-import useAuthStore from "./store/AuthStore";
+import useAuthStore from "./store/authStore";
 
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminFeedback from "./pages/AdminFeedback";
 import AdminProfile from "./pages/AdminProfile";
 import AdminSettings from "./pages/AdminSettings";
 import AllBooks from "./pages/AllBooks";
@@ -243,6 +244,14 @@ const AppRoutes = () => {
           element={
             <AdminRoute>
               <AdminSettings />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin-feedback"
+          element={
+            <AdminRoute>
+              <AdminFeedback />
             </AdminRoute>
           }
         />
