@@ -11,10 +11,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import useBookStore from "@/store/useBookStore";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ManageBooks = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const navigate = useNavigate();
 
   const {
     books,
@@ -219,7 +221,13 @@ const ManageBooks = () => {
               {books
                 .filter((book) => (categoryFilter ? book.category?.name === categoryFilter : true))
                 .map((book) => (
-                  <TableRow key={book._id} className="text-center">
+                  <TableRow 
+                   key={book._id}
+                   className="text-center cursor-pointer hover:bg-[#f9f6f3]"
+                   onClick={(e) => {
+                    if (e.target.closest("button")) return;
+                    navigate(`/book/${book._id}`);
+                   }}>
                     <TableCell>
                       {book.image && (
                         <img src={book.image} alt={book.title} className="h-12 w-10 object-cover mx-auto rounded" />

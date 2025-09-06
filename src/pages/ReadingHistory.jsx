@@ -2,10 +2,12 @@
 import { useEffect } from "react";
 import { Card } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { Button } from "../components/ui/button";
 import useBorrowStore from "../store/borrowStore";
 
+
 const ReadingHistory = () => {
-  const { borrowHistory, isLoading, error, fetchStudentBorrowHistory } = useBorrowStore();
+  const { borrowHistory, isLoading, error, fetchStudentBorrowHistory, returnBook } = useBorrowStore();
 
   useEffect(() => {
     fetchStudentBorrowHistory();
@@ -19,14 +21,17 @@ const ReadingHistory = () => {
       Returned: "text-green-600",
       Overdue: "text-red-600"
     };
-    
     return <span className={statusStyles[status] || ""}>{status}</span>;
+  };
+
+  const handleReturn = async (borrowId) => {
+    await returnBook(borrowId);
+    fetchStudentBorrowHistory();
   };
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">My Reading History</h2>
-      
       <Card className="overflow-x-auto overflow-y-auto max-h-[60vh] min-w-[700px]">
         {isLoading ? (
           <div className="p-4">Loading reading history...</div>
@@ -45,6 +50,7 @@ const ReadingHistory = () => {
                 <TableHead>Due Date</TableHead>
                 <TableHead>Return Date</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -73,6 +79,17 @@ const ReadingHistory = () => {
                       : "Not returned"}
                   </TableCell>
                   <TableCell>{getStatusWithStyle(borrow.status)}</TableCell>
+                  <TableCell>
+                    {borrow.status === "Borrowed" && !borrow.returnDate && (
+                      <Button
+                        variant="outline"
+                        className="text-blue-700 border-blue-700 hover:bg-blue-50"
+                        onClick={() => handleReturn(borrow._id)}
+                      >
+                        Return
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

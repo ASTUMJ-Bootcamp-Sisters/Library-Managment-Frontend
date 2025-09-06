@@ -67,6 +67,13 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
       {...props}
     >
       <CardContent className="p-6 md:p-8">
+        <div className="flex justify-center mb-4">
+          <img 
+            src="/logo.png"
+            alt="logo"
+            className="w-20 "
+            />
+          </div>
         {/* Left Side: Form */}
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center text-center">

@@ -150,6 +150,30 @@ const BorrowingRequests = () => {
                   </div>
                 )}
 
+                {/* Uploaded ID Card Image */}
+                {borrow.idCardImage && (
+                  <div className="mb-3">
+                    <span className="font-medium text-sm">ID Card Image:</span>
+                    <img
+                      src={`http://localhost:5000/${borrow.idCardImage.replace(/\\/g, "/")}`}
+                      alt="ID Card"
+                      className="w-full h-32 object-contain rounded border border-gray-200 mt-1"
+                      style={{ maxWidth: 200 }}
+                    />
+                  </div>
+                )}
+                {/* Uploaded Payment Image */}
+                {borrow.paymentImage && (
+                  <div className="mb-3">
+                    <span className="font-medium text-sm">Payment Image:</span>
+                    <img
+                      src={`http://localhost:5000/${borrow.paymentImage.replace(/\\/g, "/")}`}
+                      alt="Payment"
+                      className="w-full h-32 object-contain rounded border border-gray-200 mt-1"
+                      style={{ maxWidth: 200 }}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-2 mt-2">
                   <Button
                     onClick={() => handleApprove(borrow._id)}

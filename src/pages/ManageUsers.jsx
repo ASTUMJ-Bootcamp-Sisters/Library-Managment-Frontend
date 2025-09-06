@@ -63,11 +63,11 @@ const ManageUsers = () => {
                       {user.role === "admin" ? (
                         <>
                           <option value="admin">admin</option>
-                          <option value="student">student</option>
+                          <option value="user">student</option>
                         </>
                       ) : (
                         <>
-                          <option value="student">student</option>
+                          <option value="user">student</option>
                           <option value="admin">admin</option>
                         </>
                       )}
