@@ -252,7 +252,7 @@ const BookDetail = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={()=>setBorrowDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-[#4a2c1a] hover:bg-[#633b25]" disabled={isSubmitting}>
+              <Button type="submit" className="bg-[#4f2e19] hover:bg-[#724228] text-white " disabled={isSubmitting}>
                 {isSubmitting ? "Processing..." : "Borrow"}
               </Button>
             </DialogFooter>
