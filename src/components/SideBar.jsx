@@ -1,23 +1,23 @@
 import useAuthStore from "@/store/authStore";
 import {
-  Book,
-  BookMarked,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  History,
-  Info,
-  LayoutDashboard,
-  LifeBuoy,
-  MessageSquare,
-  Settings,
-  User,
-  Users
+    Book,
+    BookMarked,
+    ChevronLeft,
+    ChevronRight,
+    Heart,
+    History,
+    Info,
+    LayoutDashboard,
+    LifeBuoy,
+    MessageSquare,
+    Settings,
+    User,
+    Users
 } from "lucide-react";
 import { useState } from "react";
 import FeedbackDialog from "./FeedbackDialog";
 
-const SidebarLink = ({ href, icon: Icon, label, active, collapsed }) => (
+const SidebarLink = ({ href, label, active, collapsed }) => (
   <a
     href={href}
     className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
@@ -26,7 +26,6 @@ const SidebarLink = ({ href, icon: Icon, label, active, collapsed }) => (
         : "text-[#7b5e57] hover:bg-[#f3ebe3] hover:text-[#5c4033]"
     }`}
   >
-    <Icon className="h-5 w-5 flex-shrink-0" />
     {!collapsed && <span>{label}</span>}
   </a>
 );
@@ -52,6 +51,7 @@ export default function Sidebar() {
     { href: "/ManageBooks", icon: Book, label: "Manage Books" },
     { href: "/ManageUsers", icon: Users, label: "Manage Users" },
     { href: "/BorrowingRequests", icon: BookMarked, label: "Borrowing Requests" },
+    { href: "/admin-book-reviews", icon: BookMarked, label: "Book Review Events" },
     { href: "/ManageMemberships", icon: Users, label: "Manage Memberships" },
     { href: "/BorrowHistory", icon: History, label: "Borrow History" },
     { href: "/AdminSettings", icon: Settings, label: "Settings" },

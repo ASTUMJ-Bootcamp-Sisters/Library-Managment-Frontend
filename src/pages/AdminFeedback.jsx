@@ -13,7 +13,7 @@ export default function AdminFeedbackPage() {
       try {
         const res = await api.get("/feedback");
         setFeedbacks(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
+      } catch {
         toast({ title: "Error", description: "Failed to load feedback.", variant: "destructive" });
       } finally {
         setLoading(false);

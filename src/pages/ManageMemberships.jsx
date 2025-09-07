@@ -27,6 +27,7 @@ export default function ManageMemberships() {
   const [dialogType, setDialogType] = useState(''); // 'approve', 'reject', 'delete'
   const [expiryMonths, setExpiryMonths] = useState(1);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   
   useEffect(() => {
     getAllMemberships();
@@ -53,6 +54,11 @@ export default function ManageMemberships() {
     } else if (type === 'reject') {
       setRejectionReason('');
     }
+  };
+  
+  const openDetails = (membership) => {
+    setSelectedMembership(membership);
+    setDetailsOpen(true);
   };
   
   const handleAction = async () => {
@@ -160,6 +166,8 @@ export default function ManageMemberships() {
                         <TableHead>User</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Email Verified</TableHead>
+                        <TableHead>ID Card</TableHead>
+                        <TableHead>Payment</TableHead>
                         <TableHead>Submission Date</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -181,9 +189,34 @@ export default function ManageMemberships() {
                               <span className="text-red-600">✗ Not Verified</span>
                             )}
                           </TableCell>
+                          <TableCell>
+                            {membership.idCardImage ? (
+                              <a href={`http://localhost:5000/${membership.idCardImage.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
+                                <img src={`http://localhost:5000/${membership.idCardImage.replace(/\\/g, '/')}`} alt="ID Card" className="w-12 h-12 object-cover rounded shadow border" />
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">No Image</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {membership.paymentImage ? (
+                              <a href={`http://localhost:5000/${membership.paymentImage.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">
+                                <img src={`http://localhost:5000/${membership.paymentImage.replace(/\\/g, '/')}`} alt="Payment" className="w-12 h-12 object-cover rounded shadow border" />
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">No Image</span>
+                            )}
+                          </TableCell>
                           <TableCell>{new Date(membership.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                className="bg-gradient-to-r from-[#5c4033] to-[#7b5e57] text-white font-semibold shadow hover:from-[#7b5e57] hover:to-[#5c4033] px-4 py-2 rounded-full border-2 border-[#e6d5c3] transition-all duration-200"
+                                onClick={() => openDetails(membership)}
+                              >
+                                View Details
+                              </Button>
                               {membership.status === 'Pending' && (
                                 <>
                                   <Button 
@@ -316,6 +349,57 @@ export default function ManageMemberships() {
                 <Button variant="destructive" onClick={handleAction}>Delete Membership</Button>
               </DialogFooter>
             </>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* User Details Dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-lg bg-gradient-to-br from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] rounded-2xl shadow-lg p-0">
+          {selectedMembership && (
+            <div className="max-h-[80vh] overflow-y-auto p-6 sm:p-8 flex flex-col gap-6">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-extrabold text-[#4a2c1a] tracking-wide font-serif drop-shadow-lg mb-2">User Details</DialogTitle>
+                <DialogDescription className="text-[#7b5e57] mb-4">Full info and submitted images</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <span className="font-semibold text-[#5c4033]">Name:</span> {selectedMembership.user?.fullName}<br/>
+                  <span className="font-semibold text-[#5c4033]">Email:</span> {selectedMembership.user?.email}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#5c4033]">Status:</span> {selectedMembership.status}<br/>
+                  <span className="font-semibold text-[#5c4033]">Email Verified:</span> {selectedMembership.isEmailVerified ? 'Yes' : 'No'}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#5c4033]">Payment Amount:</span> {selectedMembership.paymentAmount}<br/>
+                  <span className="font-semibold text-[#5c4033]">Payment Method:</span> {selectedMembership.paymentMethod}<br/>
+                  <span className="font-semibold text-[#5c4033]">Payment Reference:</span> {selectedMembership.paymentReference}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#5c4033]">ID Card Image:</span><br/>
+                  {selectedMembership.idCardImage ? (
+                    <img src={`http://localhost:5000/${selectedMembership.idCardImage.replace(/\\/g, '/')}`} alt="ID Card" className="w-full max-w-xs h-auto rounded shadow border mt-2 mx-auto" />
+                  ) : (
+                    <span className="text-gray-400">No Image</span>
+                  )}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#5c4033]">Payment Image:</span><br/>
+                  {selectedMembership.paymentImage ? (
+                    <img src={`http://localhost:5000/${selectedMembership.paymentImage.replace(/\\/g, '/')}`} alt="Payment" className="w-full max-w-xs h-auto rounded shadow border mt-2 mx-auto" />
+                  ) : (
+                    <span className="text-gray-400">No Image</span>
+                  )}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#5c4033]">Submitted:</span> {new Date(selectedMembership.createdAt).toLocaleString()}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button className="bg-gradient-to-r from-[#5c4033] to-[#7b5e57] text-white font-semibold shadow hover:from-[#7b5e57] hover:to-[#5c4033] px-6 py-2 rounded-full border-2 border-[#e6d5c3] transition-all duration-200" onClick={() => setDetailsOpen(false)}>Close</Button>
+              </DialogFooter>
+            </div>
           )}
         </DialogContent>
       </Dialog>

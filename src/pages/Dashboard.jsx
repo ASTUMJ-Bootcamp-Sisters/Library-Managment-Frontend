@@ -1,8 +1,9 @@
 import { getRecentBooks, getRecomendedBooks } from "@/api/bookApi";
 import useAuthStore from "@/store/authStore";
-import { ChevronDown, ChevronUp, Clock, Star } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Clock, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useBookReviewStore from "../store/bookReviewStore";
 
 const Dashboard = () => {
   const { user, isAdmin } = useAuthStore();
@@ -12,6 +13,9 @@ const Dashboard = () => {
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [visibleRecent, setVisibleRecent] = useState(5);
   const [visibleRecommended, setVisibleRecommended] = useState(5);
+  // Book reviews state from store
+  const { reviews, fetchReviews, loading: reviewLoading } = useBookReviewStore();
+  const [showEventsModal, setShowEventsModal] = useState(false);
 
   useEffect(() => {
     if (isAdmin && isAdmin()) {
@@ -42,13 +46,14 @@ const Dashboard = () => {
     };
 
     fetchBooks();
-  }, [isAdmin, navigate]);
+    fetchReviews();
+  }, [isAdmin, navigate, fetchReviews]);
 
   const imageUrl = (book) => book.image || "/placeholder.jpg";
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-start items-center p-6 bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0]">
-      <div className="relative w-full">
+  <div className="min-h-screen w-full flex flex-col justify-start items-center p-6 bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0]">
+  <div className="relative w-full">
         {/* Welcome Card */}
         <div className="bg-[#f7f2ec] rounded-2xl shadow-xl p-6 border border-[#e3c1ab] mb-6 max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold text-[#4b2e2b]">
@@ -59,6 +64,61 @@ const Dashboard = () => {
             recommendations.
           </p>
         </div>
+
+        {/* Book Review Events - now in modal */}
+        <div className="flex justify-center mb-6">
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-[#5c4033] text-white rounded-full shadow hover:bg-[#7b5e57] transition font-semibold"
+            onClick={() => setShowEventsModal(true)}
+          >
+            <CalendarDays className="w-5 h-5" />
+            Show Upcoming Events
+          </button>
+        </div>
+
+        {/* Modal for Upcoming Events */}
+        {showEventsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-gradient-to-br from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] rounded-2xl shadow-lg max-w-3xl w-full p-6 sm:p-8 overflow-y-auto max-h-[80vh] relative">
+              <button
+                className="absolute top-4 right-4 text-[#5c4033] font-bold text-xl bg-white rounded-full w-8 h-8 flex items-center justify-center shadow hover:bg-[#e6d5c3]"
+                onClick={() => setShowEventsModal(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <h3 className="text-2xl font-bold text-[#5c4033] mb-6 text-center flex items-center justify-center gap-2">
+                <CalendarDays className="w-6 h-6" /> Upcoming Book Review Events
+              </h3>
+              {reviewLoading ? (
+                <div className="text-center text-gray-500">Loading events...</div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center text-gray-500">No book review events found.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
+                  {reviews.map((review) => (
+                    <div key={review._id} className="bg-white rounded-lg shadow-md p-4 border border-[#e6d5c3] flex flex-col items-center">
+                      <img
+                        src={review.image || "/public/loginpic.jpeg"}
+                        alt={review.bookTitle}
+                        className="w-24 h-24 object-cover rounded mb-2 border bg-gray-100"
+                        onError={e => { e.target.src = "/public/loginpic.jpeg"; }}
+                      />
+                      <h4 className="text-base font-semibold text-[#5c4033] mb-1 text-center truncate w-full" title={review.bookTitle}>
+                        {review.bookTitle}
+                      </h4>
+                      <p className="text-xs text-gray-700 mb-1 text-center">Author: {review.author}</p>
+                      <p className="text-xs text-gray-500 mb-1">Location: {review.location}</p>
+                      <p className="text-xs text-gray-500 mb-1">Date: {new Date(review.dateTime).toLocaleString()}</p>
+                      <p className="text-xs text-gray-500 mb-1">Gender: {review.gender}</p>
+                      <span className="text-xs text-[#a1887f]">Event: {review.eventNumber}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Bookshelf Rows */}
         <div

@@ -1,8 +1,8 @@
 
 import { useEffect } from "react";
+import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { Button } from "../components/ui/button";
 import useBorrowStore from "../store/borrowStore";
 
 
@@ -30,7 +30,7 @@ const ReadingHistory = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0]">
       <h2 className="text-2xl font-bold mb-4">My Reading History</h2>
       <Card className="overflow-x-auto overflow-y-auto max-h-[60vh] min-w-[700px]">
         {isLoading ? (

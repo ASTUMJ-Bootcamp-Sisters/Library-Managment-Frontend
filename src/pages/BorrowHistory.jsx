@@ -70,6 +70,20 @@ const BorrowHistory = () => {
             ))}
           </select>
         </div>
+        {/* Status Filter Dropdown */}
+        <div className="flex-1 min-w-[200px]">
+          <label htmlFor="statusFilter" className="block text-sm font-medium mb-1">Filter by Status:</label>
+          <select
+            id="statusFilter"
+            value={activeTab}
+            onChange={e => setActiveTab(e.target.value)}
+            className="border rounded px-3 py-2 w-full"
+          >
+            {STATUS_TABS.map(tab => (
+              <option key={tab.key} value={tab.key}>{tab.label}</option>
+            ))}
+          </select>
+        </div>
         {/* Reset Filters Button */}
         <Button 
           onClick={() => {

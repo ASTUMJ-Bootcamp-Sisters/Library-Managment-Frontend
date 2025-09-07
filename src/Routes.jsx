@@ -1,6 +1,6 @@
-
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import AdminBookReview from "./pages/AdminBookReview";
 import useAuthStore from "./store/authStore";
 
 import AdminDashboard from "./pages/AdminDashboard";
@@ -14,7 +14,7 @@ import BorrowHistory from "./pages/BorrowHistory";
 import BorrowingRequests from "./pages/BorrowingRequests";
 import Dashboard from "./pages/Dashboard";
 import Favorites from "./pages/Favorites";
-import Login from "./pages/Login";
+import Login from "./pages/login";
 import ManageBooks from "./pages/ManageBooks";
 import ManageMemberships from "./pages/ManageMemberships";
 import ManageUsers from "./pages/ManageUsers";
@@ -22,6 +22,7 @@ import Membership from "./pages/Membership";
 import Profile from "./pages/Profile";
 import ReadingHistory from "./pages/ReadingHistory";
 import SignUp from "./pages/SignUp";
+import UserDetail from "./pages/UserDetail"; // ✅ new page import
 import Welcome from "./pages/Welcome";
 
 // Protected route component
@@ -42,90 +43,19 @@ const AdminRoute = ({ children }) => {
 };
 
 const AppRoutes = () => {
+  // ✅ fix userRole
   const userRole = useAuthStore((state) => state.user?.role);
 
   return (
     <Routes>
-      {/* Public welcome page */}
+      {/* Public routes */}
       <Route path="/" element={<Welcome />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
 
       {/* Routes wrapped in Layout */}
       <Route element={<Layout />}>
-        <Route path="/Dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/AllBooks" element={
-          <ProtectedRoute>
-            <AllBooks />
-          </ProtectedRoute>
-        } />
-        <Route path="/book/:id" element={
-          <ProtectedRoute>
-            <BookDetail />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/Borrow" element={
-          <ProtectedRoute>
-            <Borrow />
-          </ProtectedRoute>
-        } />
-        <Route path="/Favorites" element={
-          <ProtectedRoute>
-            <Favorites />
-          </ProtectedRoute>
-        } />
-        <Route path="/ReadingHistory" element={
-          <ProtectedRoute>
-            <ReadingHistory />
-          </ProtectedRoute>
-        } />
-        <Route path="/Profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        {/* Admin dashboard and admin-only routes */}
-        <Route path="/AdminDashboard" element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        } />
-        <Route path="/ManageBooks" element={
-          <AdminRoute>
-            <ManageBooks />
-          </AdminRoute>
-        } />
-        <Route path="/ManageUsers" element={
-          <AdminRoute>
-            <ManageUsers />
-          </AdminRoute>
-        } />
-        <Route path="/BorrowingRequests" element={
-          <AdminRoute>
-            <BorrowingRequests />
-          </AdminRoute>
-        } />
-        <Route path="/BorrowHistory" element={
-          <AdminRoute>
-            <BorrowHistory />
-          </AdminRoute>
-        } />
-        <Route path="/AdminSettings" element={
-          <AdminRoute>
-            <AdminSettings />
-          </AdminRoute>
-        } />
-        <Route path="/AdminProfile" element={
-          <AdminRoute>
-            <AdminProfile />
-          </AdminRoute>
-        } />
-        {/* Student / general routes */}
+        {/* General user routes */}
         <Route
           path="/Dashboard"
           element={
@@ -139,6 +69,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <AllBooks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/book/:id"
+          element={
+            <ProtectedRoute>
+              <BookDetail />
             </ProtectedRoute>
           }
         />
@@ -175,9 +113,9 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Dynamic profile route */}
+        {/* Profile routes (dynamic based on role) */}
         <Route
-          path="/AdminProfile"
+          path="/Profile"
           element={
             <ProtectedRoute>
               {userRole === "admin" || userRole === "super-admin" ? (
@@ -188,15 +126,16 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-  path="/Profile"
-  element={
-    <ProtectedRoute>
-      {userRole === "admin" || userRole === "super-admin" ? <AdminProfile /> : <Profile />}
-    </ProtectedRoute>
-  }
-/>
 
+        {/* ✅ User Detail page */}
+        <Route
+          path="/user-detail/:userId"
+          element={
+            <ProtectedRoute>
+              <UserDetail />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin-only routes */}
         <Route
@@ -232,10 +171,10 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/ManageMemberships"
+          path="/BorrowHistory"
           element={
             <AdminRoute>
-              <ManageMemberships />
+              <BorrowHistory />
             </AdminRoute>
           }
         />
@@ -244,6 +183,30 @@ const AppRoutes = () => {
           element={
             <AdminRoute>
               <AdminSettings />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/AdminProfile"
+          element={
+            <AdminRoute>
+              <AdminProfile />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin-book-reviews"
+          element={
+            <AdminRoute>
+              <AdminBookReview />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/ManageMemberships"
+          element={
+            <AdminRoute>
+              <ManageMemberships />
             </AdminRoute>
           }
         />

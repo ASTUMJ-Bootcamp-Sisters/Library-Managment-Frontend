@@ -15,6 +15,9 @@ const AllBooks = () => {
     getMembershipStatus();
   }, [getMembershipStatus]);
   const [books, setBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState("All");
+  const categories = [...new Set(books.map(b => b.category?.name).filter(Boolean))];
   const navigate = useNavigate();
   const [selectedBook, setSelectedBook] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -33,7 +36,7 @@ const AllBooks = () => {
     try {
       const response = await getAllBooks();
       const booksArray = Array.isArray(response) ? response : response?.data || [];
-      setBooks(booksArray);
+  setBooks(booksArray);
     } catch (err) {
       console.error("Error fetching books:", err);
       setBooks([]);
@@ -98,27 +101,69 @@ const AllBooks = () => {
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      {/* Sticky Header (inside page only) */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] py-4 shadow-md flex items-center justify-center gap-3 h-[80px]">
-        <BookOpen className="w-8 h-8 text-[#4a2c1a]" />
-        <h1 className="text-3xl font-extrabold text-[#4a2c1a] tracking-wide font-serif">
-          All Books
-        </h1>
+      {/* Modern Heading - not sticky, better spacing */}
+      <div className="bg-gradient-to-r from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] py-6 px-4 shadow-md flex flex-col items-center justify-center gap-2 mb-2 rounded-b-2xl">
+        <div className="flex items-center gap-3 justify-center">
+          <BookOpen className="w-10 h-10 text-[#4a2c1a] drop-shadow-lg" />
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#4a2c1a] tracking-wide font-serif drop-shadow-lg">
+            All Books
+          </h1>
+        </div>
+        <div className="w-24 h-1 bg-gradient-to-r from-[#e6d5c3] via-[#fdf0e0] to-[#e6c9a9] rounded-full mt-2" />
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between px-4 py-4 bg-[#fdf8f3] border-b border-[#e6d5c3] mb-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <label htmlFor="category" className="font-medium text-[#4a2c1a]">Category:</label>
+          <select
+            id="category"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            className="border rounded px-2 py-2 bg-white text-[#4a2c1a]"
+          >
+            <option value="All">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-1/2">
+          <input
+            type="text"
+            placeholder="Search by title or author..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="border rounded px-3 py-2 w-full text-[#4a2c1a] bg-white"
+          />
+        </div>
       </div>
 
       {/* Scrollable Books Section */}
       <div className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-          {books.length > 0 ? (
-            books.map((book) => (
-              <BookCard
-                key={book._id}
-                book={book}
-                onBorrowClick={handleBorrow}
-                onViewDetails={() => navigate(`/book/${book._id}`)}
-                className="hover:scale-105 transition-transform duration-200"
-              />
-            ))
+          {books
+            .filter(book =>
+              (category === "All" || book.category?.name === category) &&
+              (book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                book.author.toLowerCase().includes(searchTerm.toLowerCase()))
+            )
+            .length > 0 ? (
+            books
+              .filter(book =>
+                (category === "All" || book.category?.name === category) &&
+                (book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  book.author.toLowerCase().includes(searchTerm.toLowerCase()))
+              )
+              .map((book) => (
+                <BookCard
+                  key={book._id}
+                  book={book}
+                  onBorrowClick={handleBorrow}
+                  onViewDetails={() => navigate(`/book/${book._id}`)}
+                  className="hover:scale-105 transition-transform duration-200"
+                />
+              ))
           ) : (
             <div className="col-span-full text-center text-gray-500 py-10">
               No books found.

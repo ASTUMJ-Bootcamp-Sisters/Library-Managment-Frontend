@@ -105,7 +105,7 @@ const Profile = () => {
     try {
       await requestEmailOtp();
       setMessage("OTP sent to your email. Please check your inbox.");
-    } catch (err) {
+    } catch {
       setMessage("Failed to send OTP. Try again.");
     }
     setVerifying(false);

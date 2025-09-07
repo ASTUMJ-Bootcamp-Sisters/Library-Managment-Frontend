@@ -4,12 +4,12 @@ import { addFavorite, checkFavorite, removeFavorite } from "@/api/favoriteApi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -98,9 +98,19 @@ const BookDetail = () => {
       );
       if (currentUserComment) setUserRating(currentUserComment.rating || 0);
 
-      // check favorite status
-      const favStatus = await checkFavorite(id);
-      setIsFavorite(favStatus?.isFavorite || false);
+      // Only check favorite if user is authenticated
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        try {
+          const favStatus = await checkFavorite(id);
+          setIsFavorite(favStatus?.isFavorite || false);
+        } catch {
+          // If 404, do not show error, just set false
+          setIsFavorite(false);
+        }
+      } else {
+        setIsFavorite(false);
+      }
     } catch (err) {
       console.error("Error fetching book:", err);
       toast({ 
@@ -279,14 +289,18 @@ const BookDetail = () => {
     }
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0]">
+      <div className="text-xl text-[#5c4033] font-semibold animate-pulse">Loading book details...</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#fffaf3] p-6">
+  <div className="min-h-screen bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0] p-6">
       {/* Back Button */}
       <div className="flex items-center gap-2 mb-6 cursor-pointer" onClick={() => navigate(-1)}>
-        <ArrowLeft className="w-6 h-6 text-[#4a2c1a]" />
-        <span className="text-lg font-semibold text-[#4a2c1a]">Back</span>
+        <ArrowLeft className="w-6 h-6 text-[#5c4033]" />
+        <span className="text-lg font-semibold text-[#5c4033]">Back</span>
       </div>
 
       {/* Borrow Dialog */}
@@ -368,44 +382,51 @@ const BookDetail = () => {
       </Dialog>
 
       {/* Book Container */}
-      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 flex flex-col md:flex-row gap-6">
+  <div className="max-w-5xl mx-auto bg-gradient-to-br from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] shadow-xl rounded-2xl p-8 flex flex-col md:flex-row gap-8 border border-[#e3c1ab]">
         {/* Book Image */}
-        <div className="md:w-1/3 flex justify-center items-start relative">
-          <img 
-            src={book.image} 
-            alt={book.title} 
-            className="w-full h-auto max-h-[500px] object-contain rounded-lg border border-gray-200 shadow-md" 
-          />
-          {/* Favorite Button */}
-          <button
-            onClick={handleFavoriteToggle}
-            className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md hover:scale-110 transition"
-          >
-            <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
-          </button>
+        <div className="md:w-1/3 flex flex-col items-center justify-start relative">
+          <div className="bg-white rounded-xl border-2 border-[#e6d5c3] shadow-lg p-4 flex flex-col items-center w-full">
+            <img 
+              src={book.image} 
+              alt={book.title} 
+              className="w-48 h-64 object-cover rounded-lg border border-[#e6d5c3] shadow-md mb-2" 
+            />
+            {/* Favorite Button */}
+            <button
+              onClick={handleFavoriteToggle}
+              className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg border border-[#e6d5c3] hover:scale-110 transition"
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`w-7 h-7 ${isFavorite ? "fill-red-500 text-red-500" : "text-[#bca18a]"}`} />
+            </button>
+          </div>
         </div>
         
         {/* Book Details */}
         <div className="md:w-2/3 flex flex-col gap-3">
-          <h1 className="text-4xl font-extrabold text-[#4a2c1a]">{book.title}</h1>
-          <p className="text-lg text-gray-700"><strong>Author:</strong> {book.author}</p>
-          <p className="text-lg text-gray-700"><strong>Category:</strong> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})</p>
-          <p className="text-lg text-gray-700"><strong>Language:</strong> {book.language || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Publisher:</strong> {book.publisher || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Year:</strong> {book.year || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Available:</strong> {book.available || 0}</p>
-          <p className="text-lg text-gray-700"><strong>Description:</strong> {book.description || "N/A"}</p>
+          <h1 className="text-4xl font-extrabold text-[#4a2c1a] mb-2 font-serif">{book.title}</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mb-2">
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Author:</span> {book.author}</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Category:</span> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Language:</span> {book.language || "N/A"}</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Publisher:</span> {book.publisher || "N/A"}</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Year:</span> {book.year || "N/A"}</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">ISBN:</span> {book.isbn || "N/A"}</p>
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Available:</span> {book.available || 0}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4 border border-[#e6d5c3] mb-2">
+            <p className="text-base text-[#5c4033]"><span className="font-semibold">Description:</span> {book.description || "N/A"}</p>
+          </div>
           <p className="mt-2 font-semibold text-yellow-600">⭐️ Average Rating: {book.averageRating.toFixed(1)} ({book.comments.length} reviews)</p>
 
           <Button 
-            className="mt-4 bg-[#563019] hover:bg-[#7b4a2f] text-white" 
+            className="mt-4 bg-gradient-to-r from-[#563019] to-[#7b4a2f] hover:from-[#7b5e57] hover:to-[#5c4033] text-white shadow-lg font-semibold rounded-full px-6 py-2"
             onClick={handleBorrowDialogOpen} 
             disabled={book.available <= 0}
           >
             {book.available > 0 ? "Borrow this book" : "Currently unavailable"}
           </Button>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-[#a1887f]">
             {book.available > 0 
               ? `${book.available} copies available` 
               : "All copies are currently borrowed"}
@@ -414,13 +435,13 @@ const BookDetail = () => {
       </div>
       
       {/* Ratings + Comments Section */}
-      <div className="max-w-6xl mx-auto mt-6 p-6 bg-white shadow-lg rounded-lg">
-        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Your Rating</h2>
+      <div className="max-w-5xl mx-auto mt-8 p-8 bg-gradient-to-br from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] shadow-xl rounded-2xl border border-[#e3c1ab]">
+        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4 font-serif">Your Rating</h2>
         <div className="flex items-center gap-2 mb-6">
           {[1, 2, 3, 4, 5].map(star => (
             <button 
               key={star} 
-              className={`text-3xl ${userRating >= star ? "text-yellow-500" : "text-gray-300"}`} 
+              className={`text-3xl ${userRating >= star ? "text-yellow-500" : "text-[#e6d5c3]"} hover:scale-110 transition-transform`}
               onClick={() => handleRatingSubmit(star)}
             >
               ★
@@ -430,7 +451,7 @@ const BookDetail = () => {
 
         {/* Comments Toggle */}
         <button
-          className="mb-4 px-4 py-2 bg-gray-200 rounded text-[#4a2c1a] font-semibold"
+          className="mb-4 px-4 py-2 bg-gradient-to-r from-[#e6d5c3] to-[#fdf8f3] rounded-full text-[#5c4033] font-semibold shadow hover:from-[#fdf8f3] hover:to-[#e6d5c3]"
           onClick={() => setShowComments((prev) => !prev)}
         >
           {showComments ? "Hide Comments" : `Show Comments (${book.comments.length})`}
@@ -438,74 +459,74 @@ const BookDetail = () => {
         
         {showComments && (
           <>
-            <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
-            
+            <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4 font-serif">Comments</h2>
             {book.comments.length > 0 ? (
-              book.comments.map(c => (
-                <div key={c._id} className="border-b py-3 flex gap-3 items-start relative">
-                  <Avatar className="bg-slate-400">
-                    {c.user?.profileImage 
-                      ? <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
-                      : <AvatarFallback>{c.user?.fullName ? c.user.fullName.split(" ").map(n => n[0]).join("") : "U"}</AvatarFallback>
-                    }
-                  </Avatar>
+              <div className="space-y-4">
+                {book.comments.map(c => (
+                  <div key={c._id} className="border-b border-[#e6d5c3] py-3 flex gap-3 items-start relative">
+                    <Avatar className="bg-[#e6d5c3]">
+                      {c.user?.profileImage 
+                        ? <AvatarImage src={c.user.profileImage} alt={c.user?.fullName || "User"} />
+                        : <AvatarFallback>{c.user?.fullName ? c.user.fullName.split(" ").map(n => n[0]).join("") : "U"}</AvatarFallback>
+                      }
+                    </Avatar>
 
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{c.user?.fullName || "User"}</p>
+                    <div className="flex-1">
+                      <p className="font-semibold text-[#5c4033]">{c.user?.fullName || "User"}</p>
 
-                    {editingCommentId === c._id ? (
-                      <div className="flex gap-2 mt-1">
-                        <Textarea 
-                          value={editingText} 
-                          onChange={e => setEditingText(e.target.value)} 
-                          className="flex-1 h-16" 
-                        />
-                        <Button onClick={() => handleEditComment(c._id)}>Save</Button>
-                        <Button variant="outline" onClick={() => setEditingCommentId(null)}>Cancel</Button>
-                      </div>
-                    ) : (
-                      <p className="text-gray-700">{c.text}</p>
-                    )}
-                  </div>
+                      {editingCommentId === c._id ? (
+                        <div className="flex gap-2 mt-1">
+                          <Textarea 
+                            value={editingText} 
+                            onChange={e => setEditingText(e.target.value)} 
+                            className="flex-1 h-16 border border-[#e6d5c3] rounded" 
+                          />
+                          <Button onClick={() => handleEditComment(c._id)} className="bg-[#5c4033] text-white">Save</Button>
+                          <Button variant="outline" onClick={() => setEditingCommentId(null)} className="border-[#e6d5c3]">Cancel</Button>
+                        </div>
+                      ) : (
+                        <p className="text-[#4a2c1a]">{c.text}</p>
+                      )}
+                    </div>
 
-                  {/* 3-dot menu (all users see it) */}
-                  <div className="relative" ref={menuRef}>
-                    <button onClick={() => setOpenMenu(openMenu === c._id ? null : c._id)}>
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
+                    {/* 3-dot menu (all users see it) */}
+                    <div className="relative" ref={menuRef}>
+                      <button onClick={() => setOpenMenu(openMenu === c._id ? null : c._id)}>
+                        <MoreVertical className="w-5 h-5 text-[#5c4033]" />
+                      </button>
 
-                    {openMenu === c._id && (
-                      <div className="absolute top-6 right-0 bg-white border shadow-md rounded w-32 z-50">
-                        {c.user?._id === currentUserId || currentUserRole === "admin" ? (
-                          <>
-                            {c.user?._id === currentUserId && (
+                      {openMenu === c._id && (
+                        <div className="absolute top-6 right-0 bg-white border border-[#e6d5c3] shadow-md rounded w-32 z-50">
+                          {c.user?._id === currentUserId || currentUserRole === "admin" ? (
+                            <>
+                              {c.user?._id === currentUserId && (
+                                <button 
+                                  className="block w-full px-4 py-2 text-left hover:bg-[#fdf8f3] text-[#5c4033]"
+                                  onClick={() => { 
+                                    setEditingCommentId(c._id); 
+                                    setEditingText(c.text); 
+                                    setOpenMenu(null); 
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              )}
                               <button 
-                                className="block w-full px-4 py-2 text-left hover:bg-gray-300"
-                                onClick={() => { 
-                                  setEditingCommentId(c._id); 
-                                  setEditingText(c.text); 
-                                  setOpenMenu(null); 
-                                }}
+                                className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100"
+                                onClick={() => handleDeleteComment(c._id)}
                               >
-                                Edit
+                                Delete
                               </button>
-                            )}
-                            
-                            <button 
-                              className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100"
-                              onClick={() => handleDeleteComment(c._id)}
-                            >
-                              Delete
-                            </button>
-                          </>
-                        ) : (
-                          <span className="block px-4 py-2 text-gray-500 cursor-not-allowed">No actions</span>
-                        )}
-                      </div>
-                    )}
+                            </>
+                          ) : (
+                            <span className="block px-4 py-2 text-gray-500 cursor-not-allowed">No actions</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
               <p className="text-gray-500">No comments yet.</p>
             )}
@@ -524,11 +545,11 @@ const BookDetail = () => {
               }
             }}
             placeholder="Add a comment..."
-            className="flex-1 resize-none h-16 rounded border border-gray-300"
+            className="flex-1 resize-none h-16 rounded border border-[#e6d5c3] bg-[#fffaf3]"
           />
           <button 
             onClick={handleCommentSubmit} 
-            className="bg-[#4a2c1a] text-white px-5 py-3 rounded hover:bg-[#633b25] flex items-center justify-center"
+            className="bg-gradient-to-r from-[#5c4033] to-[#7b5e57] text-white px-5 py-3 rounded-full shadow hover:from-[#7b5e57] hover:to-[#5c4033] flex items-center justify-center"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -1,9 +1,8 @@
-
-import { Calendar, Clock, Search, User } from "lucide-react";
+import { Calendar, Clock, Info, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/AuthStore";
-
+import useAuthStore from "../store/authStore";
+import StudentRulesFloating from "./StudentRulesFloating";
 
 export default function Navbar() {
   const [time, setTime] = useState("");
@@ -16,6 +15,7 @@ export default function Navbar() {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const logout = useAuthStore((state) => state.logout);
+  const isAdmin = useAuthStore((state) => state.isAdmin());
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -81,22 +81,20 @@ export default function Navbar() {
             {hijriArabic ? "EN" : "AR"}
           </button>
         </div>
-        {/* Center: Search (hidden on mobile) */}
-        <div className="hidden md:flex items-center space-x-2 bg-gray-100 p-2 rounded-full">
-          <span className="text-gray-500">All</span>
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-transparent outline-none text-sm"
-          />
-          <Search size={18} className="text-red-500" />
+        {/* Center: (removed search bar for cleaner look) */}
+        <div className="flex-1 flex justify-center items-center">
+          {/* Optionally add logo or title here for center alignment */}
         </div>
-        {/* Right: Time and Avatar */}
+        {/* Right: Time, Avatar, and Info Icon */}
         <div className="flex items-center space-x-2">
           <div className="hidden md:flex items-center space-x-1 bg-gray-100 p-2 rounded-full">
             <Clock size={18} className="text-red-500" />
             <span className="text-sm">{time}</span>
           </div>
+          {/* Show Info/Rules only for non-admin users */}
+          {!isAdmin && (
+            <StudentRulesFloating icon={<Info size={24} className="text-[#5c4033]" />} />
+          )}
           {/* Avatar/User Dropdown */}
           <div className="relative">
             <div

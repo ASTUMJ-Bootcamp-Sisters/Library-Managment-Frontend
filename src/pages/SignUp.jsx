@@ -1,5 +1,6 @@
 import { Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import FeedbackDialog from '../components/FeedbackDialog';
 import { SignupForm } from '../components/signup-form';
 import { Button } from '../components/ui/button';
 
@@ -20,6 +21,10 @@ const SignUp = () => {
             </Link>
           </Button>
         </div>
+      </div>
+      {/* Floating Feedback Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <FeedbackDialog />
       </div>
     </div>
   )

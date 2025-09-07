@@ -3,9 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import useAuthStore from "@/store/authStore.js";
+// const useAuthStore = require("../store/authStore").default;
+import FeedbackDialog from "./FeedbackDialog";
 
-import useAuthStore from "../store/AuthStore";
-
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -21,6 +23,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
   const navigate = useNavigate();
   
   const authStore = useAuthStore();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -36,6 +39,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
     // Validate form
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
       return;
     }
 
@@ -49,12 +53,15 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
       });
 
       if (success) {
+        toast({ title: "Signup Successful", description: `Welcome, ${formData.fullName || formData.email}!`, variant: "default" });
         navigate("/Dashboard"); // Redirect to dashboard on success
       } else {
         setError(registerError || "Registration failed");
+        toast({ title: "Signup Failed", description: registerError || "Registration failed", variant: "destructive" });
       }
     } catch (err: any) {
       setError(err.message || "Registration failed");
+      toast({ title: "Signup Error", description: err.message || "Registration failed", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +171,10 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
           alt="Signup Illustration"
           className="absolute inset-0 h-full w-full object-cover"
         />
+      </div>
+      {/* Floating Feedback Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <FeedbackDialog />
       </div>
     </Card>
   );

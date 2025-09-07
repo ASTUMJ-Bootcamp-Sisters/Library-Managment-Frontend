@@ -2,10 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import useAuthStore from "@/store/authStore.js";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import useAuthStore from "@/store/authStore";
+import FeedbackDialog from "./FeedbackDialog";
+// const useAuthStore = require("../store/authStore").default;
+
+
+
+
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({
@@ -17,6 +24,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   const navigate = useNavigate();
   
   const authStore = useAuthStore();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,6 +45,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       );
 
       if (success) {
+        toast({ title: "Login Successful", description: `Welcome back, ${user.fullName || user.email}!`, variant: "default" });
         // Redirect based on user role
         if (user.role === "admin") {
           navigate("/AdminDashboard");
@@ -45,9 +54,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
         }
       } else {
         setError(loginError || "Login failed");
+        toast({ title: "Login Failed", description: loginError || "Login failed", variant: "destructive" });
       }
     } catch (err: any) {
       setError(err.message || "Login failed");
+      toast({ title: "Login Error", description: err.message || "Login failed", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -63,13 +74,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       {...props}
     >
       <CardContent className="p-6 md:p-8">
-        <div className="flex justify-center mb-4">
-          <img 
-            src="/logo.png"
-            alt="logo"
-            className="w-20 "
-            />
-          </div>
         {/* LEFT SIDE: FORM */}
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center text-center">
@@ -91,15 +95,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           </div>
 
           <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password" className="text-[#5c4033]">Password</Label>
-              <a
-                href="#"
-                className="ml-auto text-sm text-[#5c4033] hover:text-[#e6d5c3] underline-offset-2 hover:underline"
-              >
-                Forgot your password?
-              </a>
-            </div>
+            <Label htmlFor="password" className="text-[#5c4033]">Password</Label>
             <Input
               id="password"
               type="password"
@@ -141,6 +137,10 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           alt="Login Illustration"
           className="absolute inset-0 h-full w-full object-cover"
         />
+      </div>
+      {/* Floating Feedback Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <FeedbackDialog />
       </div>
     </Card>
   );
