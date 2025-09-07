@@ -225,3 +225,33 @@ export const getRecomendedBooks = async () => {
     throw { ...err, message: errorMessage};
   }
 };
+ // edit comment
+ export const editComment = async (commentId, text) => {
+  try {
+    if(!commentId) {
+      throw new Error("Comment ID is required");
+    }
+
+    const res = await api.put(`/books/comment/edit`, { commentId, text});
+    return res.data;
+  } catch (err) {
+    console.error("Error editing comment:", err);
+    const errorMessage = err.response?.data?.message || "Failed to edit comment";
+    throw { ...err, message: errorMessage };
+  }
+ };
+
+ // delete comment
+ export const deleteComment = async (commentId) => {
+  try {
+    if (!commentId) {
+      throw new Error("Comment ID is required");
+    }
+    const res = await api.delete(`/books/comment/delete`, {data: {commentId} });
+    return res.data;
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+    const errorMessage = err.response?.data?.message || "Failed to delete comment";
+    throw { ...err, message: errorMessage };
+  }
+ };

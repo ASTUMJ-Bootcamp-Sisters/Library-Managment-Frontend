@@ -81,16 +81,7 @@ export default function Navbar() {
             {hijriArabic ? "EN" : "AR"}
           </button>
         </div>
-        {/* Center: Search (hidden on mobile) */}
-        <div className="hidden md:flex items-center space-x-2 bg-gray-100 p-2 rounded-full">
-          <span className="text-gray-500">All</span>
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-transparent outline-none text-sm"
-          />
-          <Search size={18} className="text-red-500" />
-        </div>
+        
         {/* Right: Time and Avatar */}
         <div className="flex items-center space-x-2">
           <div className="hidden md:flex items-center space-x-1 bg-gray-100 p-2 rounded-full">

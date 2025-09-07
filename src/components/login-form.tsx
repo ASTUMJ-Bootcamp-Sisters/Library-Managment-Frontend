@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import useAuthStore from "../store/AuthStore";
+import useAuthStore from "@/store/authStore";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState({
@@ -63,6 +63,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       {...props}
     >
       <CardContent className="p-6 md:p-8">
+        <div className="flex justify-center mb-4">
+          <img 
+            src="/logo.png"
+            alt="logo"
+            className="w-20 "
+            />
+          </div>
         {/* LEFT SIDE: FORM */}
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center text-center">

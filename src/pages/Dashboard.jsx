@@ -10,7 +10,6 @@ const Dashboard = () => {
 
   const [recentBooks, setRecentBooks] = useState([]);
   const [recommendedBooks, setRecommendedBooks] = useState([]);
-
   const [visibleRecent, setVisibleRecent] = useState(5);
   const [visibleRecommended, setVisibleRecommended] = useState(5);
 
@@ -48,10 +47,10 @@ const Dashboard = () => {
   const imageUrl = (book) => book.image || "/placeholder.jpg";
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-start items-center p-6 bg-gradient-to-b from-[#d7c0ae] via-[#c8a98f] to-[#d7c0ae]">
+    <div className="min-h-screen w-full flex flex-col justify-start items-center p-6 bg-gradient-to-b from-[#f3e7dd] via-[#e4d0bf] to-[#e9d1c0]">
       <div className="relative w-full">
         {/* Welcome Card */}
-        <div className="bg-[#f7f2ec] rounded-2xl shadow-xl p-6 border border-[#b3937d] mb-6 max-w-3xl mx-auto">
+        <div className="bg-[#f7f2ec] rounded-2xl shadow-xl p-6 border border-[#e3c1ab] mb-6 max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold text-[#4b2e2b]">
             Welcome back, {user?.fullName || "Student"} 👋
           </h1>

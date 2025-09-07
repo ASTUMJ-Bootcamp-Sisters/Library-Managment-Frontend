@@ -4,29 +4,39 @@ import { useNavigate } from "react-router-dom";
 import { getAllBooks } from "../api/bookApi";
 import { borrowBook } from "../api/borrowApi";
 import BookCard from "../components/BookCard";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "../components/ui/dialog";
+import { Label } from "../components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Textarea } from "../components/ui/Textarea";
+import { Button } from "../components/ui/button";
 import { toast } from "../hooks/use-toast";
 import useMembershipStore from "../store/membershipStore";
 
 const AllBooks = () => {
   const { membership, getMembershipStatus } = useMembershipStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getMembershipStatus();
   }, [getMembershipStatus]);
-  const [books, setBooks] = useState([]);
-  const navigate = useNavigate();
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
 
-  const [dueDate, setDueDate] = useState("");
+  const [books, setBooks] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
+
+  // same states from BookDetail
+  const [borrowDialogOpen, setBorrowDialogOpen] = useState(false);
+  const [borrowDuration, setBorrowDuration] = useState("1w");
   const [idCardImage, setIdCardImage] = useState(null);
   const [paymentImage, setPaymentImage] = useState(null);
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    fetchBooks();
-  }, []);
+  const [borrowNote, setBorrowNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchBooks = async () => {
     try {
@@ -39,163 +49,144 @@ const AllBooks = () => {
     }
   };
 
-  const handleBorrow = (book) => {
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const handleBorrowDialogOpen = (book) => {
+    if (book.available <= 0) {
+      toast({
+        title: "Book unavailable",
+        description: "This book is currently out of stock",
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedBook(book);
-    setOpenDialog(true);
-    setDueDate("");
-    setPaymentImage(null);
-    setNote("");
+    setBorrowDialogOpen(true);
   };
 
-  const handleConfirmBorrow = async () => {
+  const handleFileChange = (e, setter) => {
+    const file = e.target.files[0];
+    if (file) setter(file);
+  };
+
+  const handleBorrowSubmit = async (e) => {
+    e.preventDefault();
     if (!selectedBook) return;
-    const formData = new FormData();
-    formData.append("bookId", selectedBook._id);
-    formData.append("duration", dueDate ? (dueDate ? "1w" : "2w") : "1w"); // You may want to improve duration logic
-    formData.append("note", note);
-    if (membership?.status === "Active") {
-      if (paymentImage) formData.append("paymentImage", paymentImage);
-    } else {
+
+    const isMember = membership?.status === "Active";
+    if (!isMember) {
       if (!idCardImage || !paymentImage) {
         toast({
-          title: "Missing Uploads",
-          description: "Non-members must upload both ID card and payment images.",
-          variant: "destructive"
+          title: "Missing files",
+          description: "Upload ID card and payment proof",
+          variant: "destructive",
         });
         return;
       }
-      formData.append("idCardImage", idCardImage);
-      formData.append("paymentImage", paymentImage);
     }
     try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append("bookId", selectedBook._id);
+      formData.append("duration", borrowDuration);
+      if (borrowNote) formData.append("note", borrowNote);
+      if (!isMember) {
+        formData.append("idCardImage", idCardImage);
+        formData.append("paymentImage", paymentImage);
+      }
       await borrowBook(formData);
-      toast({
-        title: "Success!",
-        description: "Borrow request submitted!",
-        variant: "default"
-      });
-      setOpenDialog(false);
+      setBorrowDialogOpen(false);
+      setBorrowDuration("1w");
+      setBorrowNote("");
+      setIdCardImage(null);
+      setPaymentImage(null);
+      toast({ title: "Success", description: "Borrow request submitted" });
     } catch (err) {
-      toast({
-        title: "Error",
-        description: typeof err === "string" ? err : (err?.message || "Failed to borrow book"),
-        variant: "destructive"
-      });
+      console.error(err);
+      toast({ title: "Error", description: "Failed to borrow book", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      {/* Sticky Header (inside page only) */}
+      {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-to-r from-[#fffaf3] via-[#fdf0e0] to-[#e6c9a9] py-4 shadow-md flex items-center justify-center gap-3 h-[80px]">
         <BookOpen className="w-8 h-8 text-[#4a2c1a]" />
-        <h1 className="text-3xl font-extrabold text-[#4a2c1a] tracking-wide font-serif">
-          All Books
-        </h1>
+        <h1 className="text-3xl font-extrabold text-[#4a2c1a]">All Books</h1>
       </div>
 
-      {/* Scrollable Books Section */}
+      {/* Books grid: 5 per row on lg screens */}
       <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-6">
           {books.length > 0 ? (
             books.map((book) => (
               <BookCard
                 key={book._id}
                 book={book}
-                onBorrowClick={handleBorrow}
+                small
+                onBorrowClick={() => handleBorrowDialogOpen(book)}
                 onViewDetails={() => navigate(`/book/${book._id}`)}
-                className="hover:scale-105 transition-transform duration-200"
               />
             ))
           ) : (
-            <div className="col-span-full text-center text-gray-500 py-10">
-              No books found.
-            </div>
+            <div className="col-span-full text-center text-gray-500 py-10">No books found.</div>
           )}
         </div>
       </div>
 
+      {/* Borrow Dialog */}
       {selectedBook && (
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="bg-white max-w-md">
+        <Dialog open={borrowDialogOpen} onOpenChange={setBorrowDialogOpen}>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Borrow Book</DialogTitle>
               <DialogDescription>
-                Do you want to borrow <b>{selectedBook.title}</b>?
+                {membership?.status === "Active"
+                  ? `Borrow "${selectedBook.title}"`
+                  : `As a non-member, upload ID card and payment proof to borrow "${selectedBook.title}"`}
               </DialogDescription>
             </DialogHeader>
-            {/* Borrow Form for both members and non-members */}
-            <div className="flex flex-col gap-3 mt-4">
-              <div className="flex flex-col">
-                <label className="text-sm font-medium">Due Date</label>
-                <input
-                  type="date"
-                  className="border rounded px-2 py-1"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
-              </div>
-              {/* Non-member required fields */}
-              {!(membership?.status === "Active") && (
-                <>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium">ID Card Image <span className="text-red-500">*</span></label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      required
-                      onChange={(e) => setIdCardImage(e.target.files[0])}
-                      className="border rounded px-2 py-1 bg-[#fffaf3] text-[#4a2c1a]"
-                    />
+            <form onSubmit={handleBorrowSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Borrowing Duration</Label>
+                <RadioGroup value={borrowDuration} onValueChange={setBorrowDuration} className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1w" id="1w" /><Label htmlFor="1w">1 Week</Label>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-medium">Payment Screenshot <span className="text-red-500">*</span></label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      required
-                      onChange={(e) => setPaymentImage(e.target.files[0])}
-                      className="border rounded px-2 py-1 bg-[#fffaf3] text-[#4a2c1a]"
-                    />
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="2w" id="2w" /><Label htmlFor="2w">2 Weeks</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              {membership?.status !== "Active" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="idCard">ID Card Image</Label>
+                    <input type="file" id="idCard" accept="image/*"
+                      onChange={(e) => handleFileChange(e, setIdCardImage)} className="w-full border rounded p-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment">Payment Screenshot</Label>
+                    <input type="file" id="payment" accept="image/*"
+                      onChange={(e) => handleFileChange(e, setPaymentImage)} className="w-full border rounded p-2" />
                   </div>
                 </>
               )}
-              {/* Member optional payment image */}
-              {membership?.status === "Active" && (
-                <div className="flex flex-col">
-                  <label className="text-sm font-medium">Payment Image (Optional)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setPaymentImage(e.target.files[0])}
-                    className="border rounded px-2 py-1 bg-[#fffaf3] text-[#4a2c1a]"
-                  />
-                </div>
-              )}
-              <div className="flex flex-col">
-                <label className="text-sm font-medium">Note</label>
-                <textarea
-                  className="border rounded px-2 py-1 text-black"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Optional note"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="note">Notes (Optional)</Label>
+                <Textarea id="note" value={borrowNote} onChange={(e) => setBorrowNote(e.target.value)} className="w-full" />
               </div>
-            </div>
-            <DialogFooter className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setOpenDialog(false)}
-                className="px-4 py-2 bg-[#e6c9a9] text-[#4a2c1a] rounded-lg font-semibold hover:bg-[#fdf0e0]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmBorrow}
-                className="px-4 py-2 bg-[#4a2c1a] text-white rounded-lg font-semibold hover:bg-[#5c4033]"
-              >
-                Confirm
-              </button>
-            </DialogFooter>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setBorrowDialogOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-[#653b21] hover:bg-[#965a39] text-white" disabled={isSubmitting}>
+                  {isSubmitting ? "Processing..." : "Borrow"}
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
       )}

@@ -120,7 +120,7 @@ const Profile = () => {
     return <div className="text-center p-10 text-gray-800">Loading...</div>;
 
   return (
-  <div className="min-h-screen bg-gradient-to-r from-white via-[#fdf8f3] to-white p-6">
+  <div className="min-h-screen bg-gradient-to-r from-[#fffaf3] via-[#fdf8f3] to-white p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-[#5c4033] mb-4">Profile</h1>
         {message && (
