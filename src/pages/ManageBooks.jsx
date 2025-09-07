@@ -38,7 +38,6 @@ const ManageBooks = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
     const newForm = { ...form };
 
     if (name.startsWith("category.")) {
@@ -54,7 +53,7 @@ const ManageBooks = () => {
     } else {
       newForm[name] = value || "";
     }
-    
+
     setForm(newForm);
   };
 
@@ -97,7 +96,6 @@ const ManageBooks = () => {
       const [parent, child] = isNested ? field.key.split(".") : [field.key, null];
       const value = isNested ? form[parent]?.[child] ?? "" : form[parent] ?? "";
       const checked = field.type === "checkbox" ? !!value : undefined;
-      
       const inputClass = field.fullWidth ? "col-span-full" : "col-span-1";
 
       if (field.type === "textarea") {
@@ -127,7 +125,7 @@ const ManageBooks = () => {
           </div>
         );
       }
-      
+
       return (
         <div key={field.key} className={`${inputClass} flex flex-col`}>
           <label className="text-sm font-medium text-[#5c4033] mb-1">{field.label}:</label>
@@ -144,14 +142,15 @@ const ManageBooks = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-[#5c4033] mb-4">Manage Books</h1>
-      
+    <div className="min-h-screen p-6 bg-gradient-to-b from-[#f3ede9] via-[#f9f2eb] to-[#ede3dc]">
+      <h1 className="text-2xl font-bold text-[#5c4033] mb-6">Manage Books</h1>
+
+      {/* Filter + Add Book */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <label className="mr-2 text-[#5c4033] font-medium">Filter by Category:</label>
           <select
-            className="border p-2 rounded"
+            className="border p-2 rounded shadow-sm hover:border-[#5c4033] transition"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
@@ -164,13 +163,13 @@ const ManageBooks = () => {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <button
-              className="bg-[#5c4033] text-white px-4 py-2 rounded hover:bg-[#7b5e57]"
+              className="bg-[#613825] text-white px-4 py-2 rounded shadow hover:bg-[#7b5e57] transition"
               onClick={resetForm}
             >
               Add Book
             </button>
           </DialogTrigger>
-          <DialogContent className="max-h-[80vh] overflow-y-auto" style={{ background: '#fdf8f3' }}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto rounded-lg shadow-lg" style={{ background: '#fdf8f3' }}>
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Book" : "Add Book"}</DialogTitle>
             </DialogHeader>
@@ -179,7 +178,7 @@ const ManageBooks = () => {
               <DialogFooter className="col-span-full flex flex-row gap-2 justify-end mt-4">
                 <button
                   type="submit"
-                  className="bg-[#5c4033] text-white px-4 py-2 rounded hover:bg-[#7b5e57]"
+                  className="bg-[#5c4033] text-white px-4 py-2 rounded hover:bg-[#7b5e57] transition"
                 >
                   {editingId ? "Update" : "Add"} Book
                 </button>
@@ -187,7 +186,7 @@ const ManageBooks = () => {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="px-4 py-2 rounded border border-[#5c4033] text-[#5c4033]"
+                    className="px-4 py-2 rounded border border-[#5c4033] text-[#5c4033] hover:bg-[#f3ebe3] transition"
                   >
                     Cancel
                   </button>
@@ -199,15 +198,13 @@ const ManageBooks = () => {
         </Dialog>
       </div>
 
+      {/* Books Table */}
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-center text-[#5c4033]">Loading...</div>
       ) : (
-        <div 
-          className="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-md" 
-          style={{ background: '#fff' }}
-        >
+        <div className="overflow-x-auto overflow-y-auto max-h-[60vh] border rounded-lg shadow-md bg-white">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-[#f7f2ec] sticky top-0 z-10">
               <TableRow>
                 <TableHead>Image</TableHead>
                 <TableHead>Title</TableHead>
@@ -222,12 +219,13 @@ const ManageBooks = () => {
                 .filter((book) => (categoryFilter ? book.category?.name === categoryFilter : true))
                 .map((book) => (
                   <TableRow 
-                   key={book._id}
-                   className="text-center cursor-pointer hover:bg-[#f9f6f3]"
-                   onClick={(e) => {
-                    if (e.target.closest("button")) return;
-                    navigate(`/book/${book._id}`);
-                   }}>
+                    key={book._id}
+                    className="text-center cursor-pointer hover:bg-[#f9f6f3] transition"
+                    onClick={(e) => {
+                      if (e.target.closest("button")) return;
+                      navigate(`/book/${book._id}`);
+                    }}
+                  >
                     <TableCell>
                       {book.image && (
                         <img src={book.image} alt={book.title} className="h-12 w-10 object-cover mx-auto rounded" />
@@ -240,13 +238,13 @@ const ManageBooks = () => {
                     <TableCell>
                       <button
                         onClick={() => { editBook(book); setDialogOpen(true); }}
-                        className="mr-2 p-2 bg-[#e6d5c3] text-[#5c4033] rounded-full hover:bg-[#f3ebe3]"
+                        className="mr-2 p-2 bg-[#e6d5c3] text-[#5c4033] rounded-full hover:bg-[#f3ebe3] transition"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(book._id)}
-                        className="p-2 bg-red-200 text-red-700 rounded-full hover:bg-red-300"
+                        className="p-2 bg-red-200 text-red-700 rounded-full hover:bg-red-300 transition"
                       >
                         <Trash2 size={16} />
                       </button>

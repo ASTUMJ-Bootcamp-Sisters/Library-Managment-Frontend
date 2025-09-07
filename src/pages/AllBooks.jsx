@@ -119,14 +119,15 @@ const AllBooks = () => {
         <h1 className="text-3xl font-extrabold text-[#4a2c1a]">All Books</h1>
       </div>
 
-      {/* Books grid */}
+      {/* Books grid: 5 per row on lg screens */}
       <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 p-6">
           {books.length > 0 ? (
             books.map((book) => (
               <BookCard
                 key={book._id}
                 book={book}
+                small
                 onBorrowClick={() => handleBorrowDialogOpen(book)}
                 onViewDetails={() => navigate(`/book/${book._id}`)}
               />
@@ -137,7 +138,7 @@ const AllBooks = () => {
         </div>
       </div>
 
-      {/* Borrow Dialog (copied from BookDetail, adapted to selectedBook) */}
+      {/* Borrow Dialog */}
       {selectedBook && (
         <Dialog open={borrowDialogOpen} onOpenChange={setBorrowDialogOpen}>
           <DialogContent className="sm:max-w-md">

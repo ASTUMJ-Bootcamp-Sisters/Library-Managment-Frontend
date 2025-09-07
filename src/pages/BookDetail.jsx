@@ -1,4 +1,4 @@
-import { ArrowLeft, Send, MoreVertical } from "lucide-react";
+import { ArrowLeft, Send, MoreVertical, User, Tag, Globe, BookOpen, Calendar, Hash, CheckCircle } from "lucide-react";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -47,7 +47,6 @@ const BookDetail = () => {
 
   const menuRef = useRef(null);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -129,11 +128,11 @@ const BookDetail = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await deleteComment(commentId); // backend delete
+      await deleteComment(commentId); 
       setBook((prev) => ({
         ...prev,
         comments: prev.comments.filter(c => c._id !== commentId)
-      })); // remove locally for instant UI update
+      }));
       setOpenMenu(null);
       toast({ title: "Success", description: "Comment deleted" });
     } catch (err) {
@@ -141,7 +140,6 @@ const BookDetail = () => {
       toast({ title: "Error", description: "Failed to delete comment", variant: "destructive" });
     }
   };
-
 
   const handleRatingSubmit = async (value) => {
     setUserRating(value);
@@ -204,11 +202,11 @@ const BookDetail = () => {
   if (isLoading) return <p>Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-[#fffaf3] p-6">
+    <div className="min-h-screen bg-[#fdf8f3] p-6">
       {/* Back Button */}
       <div className="flex items-center gap-2 mb-6 cursor-pointer" onClick={() => navigate(-1)}>
-        <ArrowLeft className="w-6 h-6 text-[#4a2c1a]" />
-        <span className="text-lg font-semibold text-[#4a2c1a]">Back</span>
+        <ArrowLeft className="w-6 h-6 text-[#5c4033]" />
+        <span className="text-lg font-semibold text-[#5c4033]">Back</span>
       </div>
 
       {/* Borrow Dialog */}
@@ -260,23 +258,42 @@ const BookDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Book Container */}
-      <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 flex flex-col md:flex-row gap-6">
+      {/* Book Details Section */}
+      <div className="max-w-6xl mx-auto p-6 flex flex-col md:flex-row gap-6">
         {/* Book Image */}
         <div className="md:w-1/3 flex justify-center items-start">
-          <img src={book.image} alt={book.title} className="w-full h-auto max-h-[500px] object-contain rounded-lg border border-gray-200 shadow-md" />
+          <img src={book.image} alt={book.title} className="w-full h-auto max-h-[500px] object-contain rounded-lg border border-gray-200 shadow-lg" />
         </div>
-        {/* Book Details */}
-        <div className="md:w-2/3 flex flex-col gap-3">
-          <h1 className="text-4xl font-extrabold text-[#4a2c1a]">{book.title}</h1>
-          <p className="text-lg text-gray-700"><strong>Author:</strong> {book.author}</p>
-          <p className="text-lg text-gray-700"><strong>Category:</strong> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})</p>
-          <p className="text-lg text-gray-700"><strong>Language:</strong> {book.language || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Publisher:</strong> {book.publisher || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Year:</strong> {book.year || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>ISBN:</strong> {book.isbn || "N/A"}</p>
-          <p className="text-lg text-gray-700"><strong>Available:</strong> {book.available || 0}</p>
-          <p className="text-lg text-gray-700"><strong>Description:</strong> {book.description || "N/A"}</p>
+
+        {/* Book Info */}
+        <div className="md:w-2/3 flex flex-col gap-3 p-6 rounded-lg shadow-lg"
+             style={{ background: "linear-gradient(to bottom right, #fdf8f3, #f3ebe3)", border: "1px solid #e5d6c5" }}>
+          <h1 className="text-4xl font-extrabold text-[#5c4033]">{book.title}</h1>
+
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <User className="w-5 h-5 text-[#5c4033]" /> <strong>Author:</strong> {book.author}
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <Tag className="w-5 h-5 text-[#5c4033]" /> <strong>Category:</strong> {book.category?.name || "N/A"} ({book.category?.type || "N/A"})
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <Globe className="w-5 h-5 text-[#5c4033]" /> <strong>Language:</strong> {book.language || "N/A"}
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-[#5c4033]" /> <strong>Publisher:</strong> {book.publisher || "N/A"}
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#5c4033]" /> <strong>Year:</strong> {book.year || "N/A"}
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <Hash className="w-5 h-5 text-[#5c4033]" /> <strong>ISBN:</strong> {book.isbn || "N/A"}
+          </p>
+          <p className="text-lg text-[#7b5e57] flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-[#5c4033]" /> <strong>Available:</strong> {book.available || 0}
+          </p>
+
+          <p className="text-lg text-[#7b5e57] mt-2"><strong>Description:</strong> {book.description || "N/A"}</p>
+
           <p className="mt-2 font-semibold text-yellow-600">⭐ Average Rating: {book.averageRating.toFixed(1)} ({book.comments.length} reviews)</p>
 
           <Button className="mt-4 bg-[#563019] hover:bg-[#7b4a2f] text-white" onClick={handleBorrowDialogOpen} disabled={book.available<=0}>
@@ -284,18 +301,17 @@ const BookDetail = () => {
           </Button>
         </div>
       </div>
-      
-      {/* Ratings + Comments Section */}
+
+      {/* Comments Section */}
       <div className="max-w-6xl mx-auto mt-6 p-6 bg-white shadow-lg rounded-lg">
-        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Your Rating</h2>
+        <h2 className="text-2xl font-bold text-[#5c4033] mb-4">Your Rating</h2>
         <div className="flex items-center gap-2 mb-6">
           {[1,2,3,4,5].map(star => (
             <button key={star} className={`text-3xl ${userRating>=star?"text-yellow-500":"text-gray-300"}`} onClick={()=>handleRatingSubmit(star)}>★</button>
           ))}
         </div>
 
-        {/* Comments Section */}
-        <h2 className="text-2xl font-bold text-[#4a2c1a] mb-4">Comments</h2>
+        <h2 className="text-2xl font-bold text-[#5c4033] mb-4">Comments</h2>
         {book.comments.map(c => (
           <div key={c._id} className="border-b py-3 flex gap-3 items-start relative">
             <Avatar className="bg-slate-400">
@@ -322,7 +338,6 @@ const BookDetail = () => {
               )}
             </div>
 
-            {/* 3-dot menu (all users see it) */}
             <div className="relative">
               <button onClick={() => setOpenMenu(openMenu === c._id ? null : c._id)}>
                 <MoreVertical className="w-5 h-5" />
@@ -340,7 +355,6 @@ const BookDetail = () => {
                         Edit
                       </button>
                       )}
-                      
                       <button 
                         className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-100"
                         onClick={() => handleDeleteComment(c._id)}
@@ -357,10 +371,6 @@ const BookDetail = () => {
           </div>
         ))}
 
-
-
-
-
         <div className="mt-6 flex gap-3">
           <Textarea
             value={newComment}
@@ -369,9 +379,7 @@ const BookDetail = () => {
             placeholder="Add a comment..."
             className="flex-1 resize-none h-16 rounded border border-gray-300"
           />
-          <button onClick={handleCommentSubmit} className="bg-[#4a2c1a] text-white px-5 py-3 rounded hover:bg-[#633b25] flex items-center justify-center">
-            <Send className="w-5 h-5" />
-          </button>
+          <Button onClick={handleCommentSubmit}>Send</Button>
         </div>
       </div>
     </div>
